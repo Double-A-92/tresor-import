@@ -12,6 +12,7 @@ import * as ersteBank from './ersteBank';
 import * as flatex from './flatex';
 import * as fondsdepotbank from './fondsdepotbank';
 import * as ing from './ing';
+import * as lynx from './lynx';
 import * as onvista from './onvista';
 import * as pb from './postbank';
 import * as sbroker from './sbroker';
@@ -35,6 +36,7 @@ export {
   flatex,
   fondsdepotbank,
   ing,
+  lynx,
   onvista,
   pb,
   sbroker,
