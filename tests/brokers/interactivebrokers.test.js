@@ -27,6 +27,8 @@ describe('Broker: Interactive Brokers', () => {
         amount: 680,
         fee: +Big(5.8),
         tax: 0,
+        foreignCurrency: "EUR",
+        fxRate: "1"
       });
     });
   });

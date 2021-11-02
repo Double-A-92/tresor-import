@@ -86,8 +86,8 @@ function parseOneTrade(trades) {
     amount: Math.abs(parseFloat(proceeds)),
     fee: Math.abs(parseFloat(fee)),
     tax: 0,
-    //fxRate: '',
-    //foreignCurrency: currency,
+    fxRate: '1', // Unknown
+    foreignCurrency: currency,
   };
 
   if (validateActivity(activity) !== undefined) {
