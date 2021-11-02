@@ -8,7 +8,10 @@ function parseOneTrade(trades) {
   if (trades.content[i] === 'Symbol') {
     const stockSection = trades.content.indexOf('Stocks', i);
     const cfdSection = trades.content.indexOf('CFDs', i);
-    if (stockSection !== -1 && (stockSection < cfdSection || cfdSection === -1)) {
+    if (
+      stockSection !== -1 &&
+      (stockSection < cfdSection || cfdSection === -1)
+    ) {
       trades.start = stockSection + 1;
       trades.pointer = i = trades.start + 1;
     } else if (cfdSection !== -1) {
@@ -67,7 +70,7 @@ function parseOneTrade(trades) {
   }
 
   const activity = {
-    broker: 'Lynx',
+    broker: 'Interactive Brokers',
     type: code && code.toLowerCase() === 'o' ? 'Buy' : 'Sell',
     date: date,
     datetime: createActivityDateTime(

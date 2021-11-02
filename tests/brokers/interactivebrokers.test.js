@@ -1,22 +1,22 @@
-import * as lynx from '../../src/brokers/lynx';
+import * as ib from '../../src/brokers/interactivebrokers';
 import Big from 'big.js';
 
-const activityStatement = require('./__mocks__/lynx/account-statement-pdf.json');
+const activityStatement = require('./__mocks__/interactivebrokers/account-statement-pdf.json');
 
-describe('Broker: Lynx', () => {
+describe('Broker: Interactive Brokers', () => {
   describe('canParseDocument', () => {
     test('should accept Buy, Sell, Div Lynx pdf only', () => {
-      expect(lynx.canParseDocument(activityStatement, 'pdf')).toEqual(true);
+      expect(ib.canParseDocument(activityStatement, 'pdf')).toEqual(true);
     });
   });
 
   describe('Buy', () => {
     test('should map pdf data of sample 1 correctly', () => {
-      const result = lynx.parsePages(activityStatement);
+      const result = ib.parsePages(activityStatement);
 
       expect(result.activities.length).toEqual(1);
       expect(result.activities[0]).toEqual({
-        broker: 'Lynx',
+        broker: 'Interactive Brokers',
         type: 'Buy',
         date: '2019-05-16',
         datetime: ['2019-05-16', '2019-05-16T04:00:00.000Z'],
