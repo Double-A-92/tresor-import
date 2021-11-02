@@ -1,6 +1,34 @@
-import { validateActivity, createActivityDateTime } from '@/helper';
+import { createActivityDateTime, validateActivity } from '@/helper';
 
+/*** PDF ****/
 const financialInstruments = [];
+
+function loadPDF(content) {
+  const activities = [];
+
+  loadFinancialInstrumentTable(content);
+
+  let startOfTrades = content.indexOf('Trades');
+  if (startOfTrades > 0) {
+    const trades = {
+      start: startOfTrades + 1,
+      pointer: startOfTrades + 1,
+      content,
+      activities
+    };
+    while (
+      trades.pointer !== -1 &&
+      trades.pointer < trades.content.length
+      ) {
+      parseOneTrade(trades);
+    }
+  }
+
+  return {
+    activities: activities,
+    status: 0
+  };
+}
 
 function parseOneTrade(trades) {
   let i = trades.pointer;
@@ -87,7 +115,7 @@ function parseOneTrade(trades) {
     fee: Math.abs(parseFloat(fee)),
     tax: 0,
     fxRate: '1', // Unknown
-    foreignCurrency: currency,
+    foreignCurrency: currency
   };
 
   if (validateActivity(activity) !== undefined) {
@@ -107,7 +135,7 @@ function loadFinancialInstrumentTable(content) {
     content[i] !== 'Symbol' &&
     content[i] !== 'Codes' &&
     i < content.length
-  ) {
+    ) {
     const symbol = content[i++];
     let description = '';
     while (!/^\d+$/.test(content[i])) {
@@ -119,44 +147,152 @@ function loadFinancialInstrumentTable(content) {
     financialInstruments.push({
       symbol,
       description,
-      isin,
+      isin
     });
     i += 3; // skip rest of the line
   }
 }
 
-export const canParseDocument = (pages, extension) => {
-  const content = pages.flat();
+/**** CSV ****/
+
+const parseActivityStatement = content => {
+  let info = parseFinancialInstrumentInformation(content);
+
+  return parseTrades(content, info);
+};
+
+const parseTrades = (content, info) => {
+  let tradeSectionHeader = content.filter(t =>
+    t.includes('Transaktionen,Header,DataDiscriminator,')
+  );
+  let isMultiAccount =
+    tradeSectionHeader.length > 0 && tradeSectionHeader[0].includes('Account');
+
+  let tradeSection = content.filter(t => t.includes('Transaktionen,Data,'));
+  let trades = tradeSection.map(trade =>
+    parseTrade(trade, info, isMultiAccount)
+  );
+  trades = trades.filter(x => x); // Remove null and other invalid values
+  return trades;
+};
+
+const parseTrade = (trade, info, isMultiAccount) => {
+  let activity = {
+    broker: 'interactivebrokers',
+    tax: 0
+  };
+
+  // Split at comma, but not inside quoted strings
+  const regex = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/gm;
+  let tradeValues = trade.split(regex);
+  let o = isMultiAccount ? 1 : 0; // Offset for extra 5th column ('Account') in multi-account report
+
+  // Security Information
+  if (!info.has(tradeValues[5 + o])) return null; // Skip trades which don't have an ISIN
+  activity.company = info.get(tradeValues[5 + o]).name;
+  activity.isin = info.get(tradeValues[5 + o]).isin;
+
+  // Number of shares
+  let shares = parseFloat(tradeValues[7 + o].replace('"', '').replace(',', '')); // remove quotes and 1000s separator
+  activity.type = shares > 0 ? 'Buy' : 'Sell';
+  activity.shares = Math.abs(shares);
+
+  // Price and Costs
+  activity.price = parseFloat(tradeValues[8 + o]);
+  activity.amount = Math.abs(tradeValues[10 + o]);
+  activity.fee = -tradeValues[11 + o];
+
+  // Date / Time
+  let timeValues = tradeValues[6 + o].slice(1, -1).split(', ');
+  let [parsedDate, parsedDateTime] = createActivityDateTime(
+    timeValues[0],
+    timeValues[1],
+    'yyyy-MM-dd',
+    'yyyy-MM-dd HH:mm:ss'
+  );
+  activity.date = parsedDate;
+  activity.datetime = parsedDateTime;
+
+  // Currency
+  activity.foreignCurrency = tradeValues[4];
+  activity.fxRate = 1; //unknown;
+
+  return validateActivity(activity);
+};
+
+const parseFinancialInstrumentInformation = content => {
+  let infoContent = content.filter(t =>
+    t.includes('Informationen zum Finanzinstrument,Data,')
+  );
+
+  let info = new Map();
+  infoContent.forEach(line => {
+    let lineValues = line.split(',');
+    info.set(lineValues[3], { name: lineValues[4], isin: lineValues[6] });
+  });
+
+  return info;
+};
+
+/*** Common ****/
+
+const DocumentType = {
+  ActivityStatement: 'ActivityStatement',
+  Unsupported: 'Unsupported',
+  PDF: 'PDF'
+};
+
+const getDocumentType = content => {
+  if (content.includes('Statement,Data,Title,Umsatzübersicht')) {
+    return DocumentType.ActivityStatement;
+  } else if (couldBePDF(content.flat())) {
+    return DocumentType.PDF;
+  }
+
+  return DocumentType.Unsupported;
+};
+
+
+function couldBePDF(content) {
   return (
-    extension === 'pdf' &&
     content.some(line => line.includes('Lynx b.v.')) &&
     content.some(line => line.includes('Activity Statement')) &&
     content.some(line => line.includes('Trades')) &&
     content.some(line => line.includes('Financial Instrument Information'))
   );
+}
+
+export const canParseDocument = (pages, extension) => {
+  const content = pages.flat();
+  const firstPageContent = pages[0];
+  return (
+    (extension === 'pdf' && couldBePDF(content)) ||
+    (extension === 'csv' &&
+      firstPageContent.includes(
+        'Statement,Data,BrokerName,Interactive Brokers'
+      ) &&
+      getDocumentType(firstPageContent) !== DocumentType.Unsupported)
+  );
 };
 
 export const parsePages = contents => {
-  const activities = [];
   const content = contents.flat();
 
-  loadFinancialInstrumentTable(content);
+  const typeOfDocument = getDocumentType(content);
 
-  let startOfTrades = content.indexOf('Trades');
-  if (startOfTrades > 0) {
-    const trades = {
-      start: startOfTrades + 1,
-      pointer: startOfTrades + 1,
-      content,
-      activities,
-    };
-    while (trades.pointer !== -1 && trades.pointer < trades.content.length) {
-      parseOneTrade(trades);
-    }
+  switch (typeOfDocument) {
+    case DocumentType.PDF:
+      return loadPDF(content);
+    case DocumentType.Unsupported:
+      // We know this type and we don't want to support it.
+      return {
+        activities: [],
+        status: 7
+      };
+    case DocumentType.ActivityStatement:
+      return {
+        activities: parseActivityStatement(content),
+        status: 0
+      };
   }
-
-  return {
-    activities: activities,
-    status: 0,
-  };
 };
