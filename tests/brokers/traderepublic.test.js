@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as traderepublic from '../../src/brokers/traderepublic';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -13,22 +13,7 @@ import {
 describe('Broker: Trade Republic', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with Trade Republic', () => {
-      allSamples.forEach(pages => {
-        expect(traderepublic.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Trade Republic', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(traderepublic);
-      });
-    });
-  });
+  validateAllSamples(traderepublic, allSamples, 'traderepublic');
 
   describe('Validate buys', () => {
     test('Map a limit order correctly', () => {

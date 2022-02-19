@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as ebase from '@/brokers/ebase';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   transactionLogSamples,
@@ -11,22 +11,7 @@ import {
 describe('Broker: ebase', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can parse one page containing sell orders with ebase', () => {
-      allSamples.forEach(pages => {
-        expect(ebase.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as ebase', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(ebase);
-      });
-    });
-  });
+  validateAllSamples(ebase, allSamples, 'ebase');
 
   describe('Validate buys', () => {
     test('Can parse multiple planned buys from a single page pdf', () => {

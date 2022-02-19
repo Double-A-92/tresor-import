@@ -8,9 +8,15 @@ export const buySamples = [
   require('./buy/market_order_from_Oskar.json'),
   require('./buy/2021_azioni_nom_italian_tax.json'),
   require('./buy/2021_scalable_adidas_ag.json'),
+  require('./buy/2021_finanzen.net_IE00BM67HT60.json'),
+  require('./buy/2021_finanzen.net_DE000A1YC996.json'),
 ];
 
-export const sellSamples = [require('./sell/market_order.json')];
+export const sellSamples = [
+  require('./sell/market_order.json'),
+  require('./sell/2021_finanzen.net_LU0496786574.json'),
+  require('./sell/2021_smavesto_DE0006289473.json'),
+];
 
 export const dividendSamples = [
   require('./dividend/etf110_without_taxes.json'),

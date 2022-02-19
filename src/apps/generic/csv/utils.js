@@ -1,6 +1,6 @@
 import Big from 'big.js';
 import { DateTime } from 'luxon';
-import { ParqetParserError } from './errors';
+import { ParqetParserError } from '@/errors';
 
 // TODO once typescript is ready for usage in unit tests as well, replace jsDoc types with typescript signatures
 
@@ -16,7 +16,7 @@ const parseDateTimeString = (value, defaultValue) => {
 
   if (!DateTime.fromISO(trimmedValue).isValid) {
     throw new ParqetParserError(
-      'Datetime value must be of ISO 8601 format',
+      `Invalid datetime. Datetime value must be of ISO 8601 format`,
       value
     );
   }
@@ -39,7 +39,7 @@ const parseDateString = (value, defaultValue) => {
   // Accepts 'dd.MM.yyyy' oder 'yyyy-MM-dd' formats
   if (!ger.isValid && !sql.isValid) {
     throw new ParqetParserError(
-      'Date value must be either of format dd.MM.yyyy or yyyy-MM-dd',
+      `Invalid date. Date value must be either of format dd.MM.yyyy or yyyy-MM-dd`,
       value
     );
   }
@@ -59,7 +59,10 @@ const parseTimeString = (value, defaultValue) => {
 
   // Accepts 'HH:mm:ss' format
   if (!/^(?:[01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/.test(trimmedValue)) {
-    throw new ParqetParserError('Time value must be of format HH:mm:ss', value);
+    throw new ParqetParserError(
+      `Invalid time. Time value must be of format HH:mm:ss`,
+      value
+    );
   }
 
   return trimmedValue;
@@ -78,7 +81,7 @@ const parseCurrency = (value, defaultValue) => {
   // Accepts three letter capitalized word, e.g. 'EUR', 'USD'...
   if (!/(\b[A-Z]{3}\b)/.test(trimmedValue)) {
     throw new ParqetParserError(
-      'Currency value must be a string of exactly three capitalized letters',
+      `Invalid currency. Currency value must be a string of exactly three capitalized letters`,
       value
     );
   }
@@ -112,9 +115,9 @@ const parseDecimal = (value, defaultValue) => {
   const normalized = trimmedValue.replace(',', '.');
 
   // Accepts only numbers and a maximum of one floating point
-  if (!/(?<=^| )\d+(\.\d+)?(?=$| )/.test(normalized)) {
+  if (!/^(\d+|\d+\.\d+)$/.test(normalized)) {
     throw new ParqetParserError(
-      'Decimal value must only contain numbers and maximum of one floating point',
+      `Invalid decimal. Decimal value must only contain numbers and maximum of one floating point`,
       trimmedValue
     );
   }
@@ -138,6 +141,7 @@ export const FIELD_MAP = new Map([
   ],
   ['price', { fieldName: 'price', parserFunc: parseDecimal }],
   ['shares', { fieldName: 'shares', parserFunc: parseDecimal }],
+  ['amount', { fieldName: 'amount', parserFunc: parseDecimal }],
   ['tax', { fieldName: 'tax', parserFunc: parseDecimal, defaultValue: 0 }],
   ['fee', { fieldName: 'fee', parserFunc: parseDecimal, defaultValue: 0 }],
   ['type', { fieldName: 'type', parserFunc: parseSimpleString }],

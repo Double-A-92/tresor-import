@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as sbroker from '../../src/brokers/sbroker';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   dividendSamples,
@@ -8,22 +8,7 @@ import {
 } from './__mocks__/sbroker';
 
 describe('Broker: sBroker', () => {
-  describe('Check all documents', () => {
-    test('Can the document parsed with sbroker', () => {
-      allSamples.forEach(pages => {
-        expect(sbroker.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as sbroker', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(sbroker);
-      });
-    });
-  });
+  validateAllSamples(sbroker, allSamples, 'sBroker');
 
   describe('Buy', () => {
     test('Can parse document: 2021_LU0323578657', () => {

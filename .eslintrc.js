@@ -15,6 +15,11 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
-  plugins: ['vue', 'jest'],
-  rules: {},
+  plugins: ['vue', 'jest', 'es'],
+  rules: {
+    'es/no-regexp-lookbehind-assertions': 'error',
+    'es/no-regexp-named-capture-groups': 'error',
+    'es/no-regexp-s-flag': 'error',
+    'es/no-regexp-unicode-property-escapes': 'error',
+  },
 };

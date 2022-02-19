@@ -35,10 +35,21 @@ const getBroker = content => {
   }
 
   if (
+    content.some(line => line.includes('finanzen.net zero GmbH')) ||
+    content.some(line => line.includes('DonauCapital Pure Investment GmbH'))
+  ) {
+    return 'finanzen.zero';
+  }
+
+  if (
     content.some(line => line.includes('Scalable Capital Vermögensverw')) ||
     content.some(line => line.includes('www.scalable.capital'))
   ) {
     return 'scalablecapital';
+  }
+
+  if (content.some(line => line.includes('Smavesto GmbH'))) {
+    return 'smavesto';
   }
 };
 
@@ -278,6 +289,7 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parsePage = (content, documentType) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: getBroker(content),
     type: documentType,
@@ -324,7 +336,9 @@ const parseAccountStatement = content => {
       break;
     }
 
-    let companyLineNumber, type, isin, company, shares, amount;
+    /** @type {Importer.ActivityTypeUnion} */
+    let type;
+    let companyLineNumber, isin, company, shares, amount;
     if (content[startIndex + 2] === 'Kauf') {
       type = 'Buy';
       amount = parseGermanNum(content[startIndex + 3]);
@@ -400,3 +414,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

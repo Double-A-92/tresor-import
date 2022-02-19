@@ -1,0 +1,4 @@
+datetime;type;amount;currency;tax;fee;holding
+2017-01-15T00:00:00.000Z;TransferIn;2000.00;EUR;0;0;hld_61eef6ff47e546ac62012e71
+2018-01-15T00:00:00.000Z;TransferIn;1000.00;EUR;0;0;hld_61eef6ff47e546ac62012e71
+2019-01-15T00:00:00.000Z;TransferOut;1500.00;EUR;0;0;hld_61eef6ff47e546ac62012e71

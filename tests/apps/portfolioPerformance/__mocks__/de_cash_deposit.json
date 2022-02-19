@@ -1,0 +1,54 @@
+[
+  {
+    "type": "TransferIn",
+    "date": "2017-04-15",
+    "shares": 3395,
+    "amount": 3395,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2017-04-14T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-01-15",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-01-14T23:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-01-15",
+    "shares": 1332,
+    "amount": 1332,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-01-14T23:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2020-02-15",
+    "shares": 738,
+    "amount": 738,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-02-14T23:00:00.000Z"
+  }
+]

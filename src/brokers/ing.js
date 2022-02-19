@@ -274,16 +274,15 @@ const findTaxes = content => {
     if (
       !line.includes('steuer ') &&
       !line.includes('zuschlag ') &&
-      !line.includes('st anteilig')
+      !line.includes('st anteilig') &&
+      !line.includes('transaktionssteuer')
     ) {
       continue;
     }
 
     // Normaly the tax amount is in the line after the tax title
     let offset = 2;
-    if (line.endsWith('%')) {
-      offset = 2;
-    } else if (!line.endsWith('%') && !content[lineNumber + 2].endsWith('%')) {
+    if (!line.endsWith('%') && !content[lineNumber + 2].endsWith('%')) {
       // but sometimes the line after contains only a %
       // Kapitalertragsteuer 25,00  // <- variable line
       // %
@@ -298,6 +297,15 @@ const findTaxes = content => {
       // EUR
       // 74,29                      // <- tax amount
       offset = 4;
+    } else if (line.endsWith('%') && content[lineNumber + 1].endsWith('%')) {
+      // but sometimes the line after contains only a % and the line after this the percentage
+      // KapSt anteilig 50,00 %     // <- variable line
+      // 25,00%
+      // EUR
+      // 74,29                      // <- tax amount
+      offset = 3;
+    } else if (line.endsWith('%')) {
+      offset = 2;
     }
 
     if (!content[lineNumber + offset].includes(',')) {
@@ -334,6 +342,7 @@ const findForeignInformation = textArr => {
 };
 
 const parseBuySellDividend = (content, type) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'ing',
     type,
@@ -388,6 +397,7 @@ const parseDepotStatement = content => {
     content[dateIdx].split(/\s+/)[1]
   );
   while (idx >= 0) {
+    /** @type {Importer.Activity} */
     let activity = {
       broker: 'ing',
       type: 'TransferIn',
@@ -431,6 +441,7 @@ const parsePostboxDepotStatement = content => {
     if (content[idx + 6].startsWith('ISIN')) {
       isinaddidx = 7; //necessary if currency is not euro
     }
+    /** @type {Importer.Activity} */
     let activity = {
       broker: 'ing',
       type: 'TransferIn',
@@ -487,3 +498,5 @@ export const parsePages = contents => {
     status: 3,
   };
 };
+
+export const parsingIsTextBased = () => true;

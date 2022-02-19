@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as fondsdepotbank from '../../src/brokers/fondsdepotbank';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -10,22 +10,7 @@ import {
 describe('Broker: fondsdepotbank', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can one page parsed with fondsdepotbank', () => {
-      allSamples.forEach(pages => {
-        expect(fondsdepotbank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as fondsdepotbank', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(fondsdepotbank);
-      });
-    });
-  });
+  validateAllSamples(fondsdepotbank, allSamples, 'fondsdepotbank');
 
   describe('Validate buys', () => {
     test('Can the order parsed from single buy', () => {

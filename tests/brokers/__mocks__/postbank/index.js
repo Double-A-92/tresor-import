@@ -5,3 +5,5 @@ export const dividendSamples = [
 export const buySamples = [
   require('./buy/buy_savings_plan_vanguard_ftse_all_world_1.json'),
 ];
+
+export const allSamples = buySamples.concat(dividendSamples);

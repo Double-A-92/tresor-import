@@ -1,12 +1,13 @@
 import Big from 'big.js';
 import { validateActivity } from '@/helper';
 import { FIELD_MAP } from './utils';
-import { ParqetParserError } from './errors';
+import { ParqetParserError, ParqetActivityValidationError } from '@/errors';
 import { DateTime } from 'luxon';
 
 /**
  * Checks if document can be parsed by generic csv parser
  *
+ * @param {Importer.Page[]} doc - file to be parsed
  * @param {string} extension - extension of file to be parsed
  * @returns {boolean} - true if can be parsed, false otherwise
  */
@@ -17,12 +18,13 @@ export const canParseDocument = (doc, extension) =>
     // check if all required fields are present
     return (
       (l.includes('datetime') || l.includes('date')) &&
-      l.includes('price') &&
-      l.includes('shares') &&
       l.includes('tax') &&
       l.includes('fee') &&
       l.includes('type') &&
-      (l.includes('holding') || l.includes('isin') || l.includes('wkn'))
+      (l.includes('holding') || l.includes('isin') || l.includes('wkn')) &&
+      // Check the fields for security activity ot cash acitivty
+      ((l.includes('price') && l.includes('shares')) ||
+        (l.includes('amount') && l.includes('holding')))
     );
   });
 
@@ -39,40 +41,26 @@ export const parsePages = content => {
   try {
     headers = content.splice(0, 1)[0].split(';');
   } catch (error) {
-    // Could not extract headers from CSV file
-    return {
-      activities,
-      status: 3, // Critical unforeseen error during parsing, abort.
-    };
+    throw new ParqetParserError(
+      'Invalid CSV. Failed to extract headers from CSV file.',
+      content
+    );
   }
 
   if (content.length === 0) {
-    return {
-      activities,
-      status: 5, // No activities found for a valid document
-    };
+    throw new ParqetActivityValidationError(
+      'Invalid CSV. Failed to find activities in CSV file.',
+      content,
+      5
+    );
   }
 
-  const lowerCaseHeaders = headers.map(header => header.toLowerCase());
+  const lowerCaseHeaders = headers.map(header => header.toLowerCase().trim());
 
   // parse every content row
-  // return empty activity array and status code on error
   for (let i = 0; i < content.length; i++) {
-    // try catch for error here --> the further we throw, the better
-    // --> just doing it here, to show what we could do with custom errors
-    //     possibly better: catch error in function calling 'parsePages'
-    try {
-      const activity = parseRow(lowerCaseHeaders, content[i]);
-      if (activity) activities.push(activity);
-    } catch (error) {
-      console.error(
-        `${error.name} in row [${i}] reading [${error.data.input}]: ${error.message}`
-      );
-      return {
-        activities: [],
-        status: error.data.status,
-      };
-    }
+    const activity = parseRow(lowerCaseHeaders, content[i]);
+    if (activity) activities.push(activity);
   }
 
   return {
@@ -85,9 +73,18 @@ export const parsePages = content => {
  *
  * @param {string[]} lowerCaseHeaders
  * @param {string} row
+ * @returns {Importer.Activity | undefined}
  */
 const parseRow = (lowerCaseHeaders, row) => {
   const values = row.split(';');
+
+  // skip empty rows
+  if (!values) return;
+  if (values.length) {
+    const v = values[0].replace(/(\r\n|\n|\r)/gm, '');
+    if (!v) return;
+  }
+
   const activity = {};
 
   // add default values to activity regardless if it is present in CSV
@@ -113,11 +110,10 @@ const parseRow = (lowerCaseHeaders, row) => {
   }
 
   if (!activity.datetime && !activity.date) {
-    // return status code 7 (invalid document) --> might need a different code here
-    throw new ParqetParserError(
-      'One of datetime, or date must be supplied',
-      JSON.stringify(activity),
-      7
+    throw new ParqetActivityValidationError(
+      `Invalid activity. One of datetime, or date must be supplied.`,
+      activity,
+      6
     );
   }
 
@@ -130,20 +126,30 @@ const parseRow = (lowerCaseHeaders, row) => {
       .toISO();
   }
 
+  if (!activity.date && activity.datetime) {
+    activity.date = new Date(activity.datetime).toISOString().split('T')[0];
+  }
+
   if (!activity.holding && !activity.isin && !activity.wkn) {
-    // return status code 7 (invalid document) --> might need a different code here
-    throw new ParqetParserError(
-      'One of holding, isin, or wkn must be supplied',
-      JSON.stringify(activity),
-      7
+    throw new ParqetActivityValidationError(
+      `Invalid activity. One of holding, isin, or wkn must be supplied.`,
+      activity,
+      6
     );
   }
 
   if (!!activity.price && !!activity.shares) {
+    // It's a secuirty activity. Lets calculate the amount based on shares and price
     const p = new Big(activity.price);
     const s = new Big(activity.shares);
     activity.amount = +p.times(s);
+  } else if (!!activity.amount && !!activity.holding) {
+    // It's a cash activity. The input don't require columns for price and shares. Lets add them here.
+    activity.price = 1;
+    activity.shares = activity.amount;
   }
 
   return validateActivity(activity);
 };
+
+export const parsingIsTextBased = () => true;

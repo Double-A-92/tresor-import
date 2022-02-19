@@ -1,27 +1,12 @@
-import { findImplementation } from '@/index';
 import * as degiro from '../../src/brokers/degiro';
+import { validateAllSamples } from '../setup/brokers';
 import Big from 'big.js';
 import { transactionLog, depotOverview, allSamples } from './__mocks__/degiro';
 
 describe('Broker: DEGIRO', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with DEGIRO', () => {
-      allSamples.forEach(pages => {
-        expect(degiro.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as DEGIRO', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(degiro);
-      });
-    });
-  });
+  validateAllSamples(degiro, allSamples, degiro);
 
   describe('Validate transactionLog', () => {
     test('Can the transactions be parsed from: buy_only_transactions', () => {

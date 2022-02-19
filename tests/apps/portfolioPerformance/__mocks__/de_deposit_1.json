@@ -1,5 +1,83 @@
 [
   {
+    "type": "TransferIn",
+    "date": "2018-10-01",
+    "shares": 65,
+    "amount": 65,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-09-30T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-10-01",
+    "shares": 22,
+    "amount": 22,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-09-30T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-10-03",
+    "shares": 500,
+    "amount": 500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-10-02T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-10-08",
+    "shares": 25,
+    "amount": 25,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-10-07T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-10-23",
+    "shares": 170,
+    "amount": 170,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-10-22T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-11-02",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-11-01T23:00:00.000Z"
+  },
+  {
     "wkn": "865985",
     "type": "Dividend",
     "company": "APPLE",
@@ -14,6 +92,32 @@
     "exchangeRate": 0,
     "datetime": "2018-11-18T23:00:00.000Z",
     "price": 0.5466666666666666
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-12-04",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-12-03T23:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2018-12-11",
+    "shares": 2,
+    "amount": 2,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2018-12-10T23:00:00.000Z"
   },
   {
     "wkn": "870747",
@@ -32,6 +136,32 @@
     "price": 0.3426315789473684
   },
   {
+    "type": "TransferIn",
+    "date": "2019-01-03",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-01-02T23:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-01-11",
+    "shares": 2,
+    "amount": 2,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-01-10T23:00:00.000Z"
+  },
+  {
     "wkn": "855686",
     "type": "Dividend",
     "company": "DISNEY",
@@ -46,6 +176,19 @@
     "exchangeRate": 0,
     "datetime": "2019-01-13T23:00:00.000Z",
     "price": 0.6475
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-02-04",
+    "shares": 1010,
+    "amount": 1010,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-02-03T23:00:00.000Z"
   },
   {
     "wkn": "865985",
@@ -81,6 +224,19 @@
     "price": 0.26877470355731226
   },
   {
+    "type": "TransferIn",
+    "date": "2019-03-04",
+    "shares": 1010,
+    "amount": 1010,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-03-03T23:00:00.000Z"
+  },
+  {
     "isin": "US92826C8394",
     "wkn": "A0NC7B",
     "type": "Dividend",
@@ -96,6 +252,19 @@
     "exchangeRate": 0,
     "datetime": "2019-03-06T23:00:00.000Z",
     "price": 0.18666666666666668
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-03-12",
+    "shares": 2,
+    "amount": 2,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-03-11T23:00:00.000Z"
   },
   {
     "isin": "US4781601046",
@@ -148,6 +317,19 @@
     "price": 0.8704883227176221
   },
   {
+    "type": "TransferIn",
+    "date": "2019-04-02",
+    "shares": 1010,
+    "amount": 1010,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-04-01T22:00:00.000Z"
+  },
+  {
     "isin": "IE00B3XXRP09",
     "wkn": "A1JX53",
     "type": "Dividend",
@@ -182,6 +364,19 @@
     "price": 1.1364815775817332
   },
   {
+    "type": "TransferIn",
+    "date": "2019-05-03",
+    "shares": 1010,
+    "amount": 1010,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-05-02T22:00:00.000Z"
+  },
+  {
     "wkn": "A1EWWW",
     "type": "Dividend",
     "company": "ADIDAS",
@@ -196,6 +391,19 @@
     "exchangeRate": 0,
     "datetime": "2019-05-13T22:00:00.000Z",
     "price": 3.35
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-05-16",
+    "shares": 600,
+    "amount": 600,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-05-15T22:00:00.000Z"
   },
   {
     "wkn": "865985",
@@ -279,6 +487,19 @@
     "exchangeRate": 0,
     "datetime": "2019-06-03T22:00:00.000Z",
     "price": 0.19723865877712032
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-06-04",
+    "shares": 1060,
+    "amount": 1060,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-06-03T22:00:00.000Z"
   },
   {
     "isin": "US4581401001",
@@ -382,6 +603,19 @@
     "price": 0.8766716196136701
   },
   {
+    "type": "TransferIn",
+    "date": "2019-06-21",
+    "shares": 531.99,
+    "amount": 531.99,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-06-20T22:00:00.000Z"
+  },
+  {
     "isin": "IE00B0M63284",
     "wkn": "A0HGV5",
     "type": "Dividend",
@@ -432,6 +666,19 @@
     "price": 4.415
   },
   {
+    "type": "TransferIn",
+    "date": "2019-07-02",
+    "shares": 1060,
+    "amount": 1060,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-07-01T22:00:00.000Z"
+  },
+  {
     "isin": "IE00B3XXRP09",
     "wkn": "A1JX53",
     "type": "Dividend",
@@ -480,6 +727,19 @@
     "exchangeRate": 0,
     "datetime": "2019-07-28T22:00:00.000Z",
     "price": 0.67
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-08-01",
+    "shares": 1060,
+    "amount": 1060,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-07-31T22:00:00.000Z"
   },
   {
     "isin": "US8825081040",
@@ -549,6 +809,19 @@
     "price": 0.27582376897445393
   },
   {
+    "type": "TransferIn",
+    "date": "2019-09-02",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-09-01T22:00:00.000Z"
+  },
+  {
     "isin": "IE00B1FZS244",
     "wkn": "A0LEQL",
     "type": "Dividend",
@@ -583,6 +856,19 @@
     "price": 0.21909744931327665
   },
   {
+    "type": "TransferIn",
+    "date": "2019-09-03",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-09-02T22:00:00.000Z"
+  },
+  {
     "isin": "US4581401001",
     "wkn": "855681",
     "type": "Dividend",
@@ -615,6 +901,19 @@
     "exchangeRate": 0,
     "datetime": "2019-09-04T22:00:00.000Z",
     "price": 0.1968503937007874
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-09-06",
+    "shares": 2,
+    "amount": 2,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-09-05T22:00:00.000Z"
   },
   {
     "isin": "NL0000388619",
@@ -735,6 +1034,19 @@
     "price": 0.4825
   },
   {
+    "type": "TransferIn",
+    "date": "2019-10-02",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-10-01T22:00:00.000Z"
+  },
+  {
     "isin": "IE00B3VVMM84",
     "wkn": "A1JX51",
     "type": "Dividend",
@@ -784,6 +1096,32 @@
     "exchangeRate": 0,
     "datetime": "2019-10-10T22:00:00.000Z",
     "price": 0.20774938169826876
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-10-24",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-10-23T22:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2019-11-04",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-11-03T23:00:00.000Z"
   },
   {
     "wkn": "865985",
@@ -887,6 +1225,19 @@
     "price": 0.3169550173010381
   },
   {
+    "type": "TransferIn",
+    "date": "2019-12-03",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-12-02T23:00:00.000Z"
+  },
+  {
     "wkn": "864009",
     "type": "Dividend",
     "company": "NINTENDO",
@@ -935,6 +1286,19 @@
     "exchangeRate": 0,
     "datetime": "2019-12-03T23:00:00.000Z",
     "price": 0.3461109043542985
+  },
+  {
+    "type": "TransferOut",
+    "date": "2019-12-04",
+    "shares": 5000,
+    "amount": 5000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2019-12-03T23:00:00.000Z"
   },
   {
     "isin": "US92826C8394",
@@ -1106,6 +1470,32 @@
     "price": 0.2108171416559056
   },
   {
+    "type": "TransferIn",
+    "date": "2020-01-03",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-01-02T23:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2020-01-14",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-01-13T23:00:00.000Z"
+  },
+  {
     "wkn": "855686",
     "type": "Dividend",
     "company": "DISNEY",
@@ -1120,6 +1510,19 @@
     "exchangeRate": 0,
     "datetime": "2020-01-19T23:00:00.000Z",
     "price": 0.669124218051832
+  },
+  {
+    "type": "TransferIn",
+    "date": "2020-02-04",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-02-03T23:00:00.000Z"
   },
   {
     "isin": "US8825081040",
@@ -1240,6 +1643,32 @@
     "price": 0.17144952782616668
   },
   {
+    "type": "TransferIn",
+    "date": "2020-02-28",
+    "shares": 2500,
+    "amount": 2500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-02-27T23:00:00.000Z"
+  },
+  {
+    "type": "TransferIn",
+    "date": "2020-03-03",
+    "shares": 1500,
+    "amount": 1500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-03-02T23:00:00.000Z"
+  },
+  {
     "isin": "US4581401001",
     "wkn": "855681",
     "type": "Dividend",
@@ -1272,6 +1701,19 @@
     "exchangeRate": 0,
     "datetime": "2020-03-04T23:00:00.000Z",
     "price": 0.2289774970390841
+  },
+  {
+    "type": "TransferOut",
+    "date": "2020-03-09",
+    "shares": 1000,
+    "amount": 1000,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-03-08T23:00:00.000Z"
   },
   {
     "isin": "US4781601046",
@@ -1373,6 +1815,19 @@
     "exchangeRate": 0,
     "datetime": "2020-03-29T22:00:00.000Z",
     "price": 0.48
+  },
+  {
+    "type": "TransferIn",
+    "date": "2020-04-01",
+    "shares": 3500,
+    "amount": 3500,
+    "grossAmount": 0,
+    "tax": 0,
+    "fee": 0,
+    "currency": "EUR",
+    "exchangeRate": 0,
+    "price": 1,
+    "datetime": "2020-03-31T22:00:00.000Z"
   },
   {
     "isin": "IE00B3XXRP09",

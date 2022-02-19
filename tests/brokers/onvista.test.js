@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as onvista from '../../src/brokers/onvista';
+import { validateAllSamples } from '../setup/brokers';
 import Big from 'big.js';
 import {
   buySamples,
@@ -17,22 +17,7 @@ console.error = jest.fn();
 describe('Broker: onvista', () => {
   let multiPageResult;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with onvista', () => {
-      allSamples.forEach(pages => {
-        expect(onvista.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as onvista', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(onvista);
-      });
-    });
-  });
+  validateAllSamples(onvista, allSamples, 'onvista');
 
   describe('Multiple Pages', () => {
     test('should parse a PDF with multiple bills', () => {

@@ -1,5 +1,6 @@
-import { findImplementation } from '../../src';
 import * as ing from '../../src/brokers/ing';
+import { findImplementation } from '../../src';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -9,6 +10,7 @@ import {
   depotStatement,
   postboxDepotStatement,
 } from './__mocks__/ing';
+import { ParqetDocumentError } from '../../src/errors';
 
 describe('Broker: ING', () => {
   let consoleErrorSpy;
@@ -20,27 +22,14 @@ describe('Broker: ING', () => {
     depotStatement
   );
 
+  validateAllSamples(ing, allSamples, 'ing');
+
   describe('Check all documents', () => {
-    test('Can the document parsed with ING', () => {
-      allSamples.forEach(pages => {
-        expect(ing.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as ING', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(ing);
-      });
-    });
-
     test('Should not identify ing as broker if ing BIC is not present', () => {
-      invalidSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(0);
+      invalidSamples.forEach((pages, index) => {
+        expect(() =>
+          findImplementation(pages, `ing_invalid_${index}.pdf`, 'pdf')
+        ).toThrowError(ParqetDocumentError);
       });
     });
   });
@@ -216,6 +205,25 @@ describe('Broker: ING', () => {
         amount: 2388.5,
         fee: 10.87,
         tax: 0,
+      });
+    });
+
+    test('Can parse statement: 2021_FR0000120578', () => {
+      const activities = ing.parsePages(buySamples[9]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'ing',
+        type: 'Buy',
+        date: '2021-08-18',
+        datetime: '2021-08-18T08:47:49.000Z',
+        isin: 'FR0000120578',
+        company: 'Sanofi S.A. Actions Port. EO 2 Nominale',
+        shares: 155,
+        price: 89.85,
+        amount: 13926.75,
+        fee: 39.72,
+        tax: 41.78,
       });
     });
   });
@@ -516,6 +524,27 @@ describe('Broker: ING', () => {
         fee: 28.43790445683688,
         tax: 103.42,
         fxRate: 1.171324,
+        foreignCurrency: 'USD',
+      });
+    });
+
+    test('Can parse document: 2021_IE00BK1PV551', () => {
+      const activities = ing.parsePages(dividendsSamples[10]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'ing',
+        type: 'Dividend',
+        date: '2021-09-30',
+        datetime: '2021-09-30T' + activities[0].datetime.substring(11),
+        isin: 'IE00BK1PV551',
+        company: 'Xtr.(IE) - MSCI World Registered Shares 1D o.N.',
+        shares: 490,
+        price: 0.2850017198379645,
+        amount: 139.64739442393187,
+        fee: 0,
+        tax: 25.78,
+        fxRate: 1.159993,
         foreignCurrency: 'USD',
       });
     });

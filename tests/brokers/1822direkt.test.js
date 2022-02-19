@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as _1822direkt from '../../src/brokers/1822direkt';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -10,22 +10,7 @@ import {
 describe('Broker: 1822direkt', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with 1822direkt', () => {
-      allSamples.forEach(pages => {
-        expect(_1822direkt.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as 1822direkt', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(_1822direkt);
-      });
-    });
-  });
+  validateAllSamples(_1822direkt, allSamples, '1882direkt');
 
   describe('Validate buys', () => {
     test('Can the direct market order parsed from the document', () => {

@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as peaks from '../../src/brokers/peaks';
+import { validateAllSamples } from '../setup/brokers';
 import {
   overviewSamples,
   buySamples,
@@ -7,27 +7,13 @@ import {
   feesSamples,
   unknownSamples,
   numberFormatSamples,
+  allSamples,
 } from './__mocks__/peaks';
 
 describe('Broker: peaks', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can one page parsed with peaks', () => {
-      overviewSamples.forEach(pages => {
-        expect(peaks.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as peaks', () => {
-      overviewSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(peaks);
-      });
-    });
-  });
+  validateAllSamples(peaks, allSamples, 'peaks');
 
   describe('Validate buys', () => {
     test('Can all orders be parsed from overview', () => {

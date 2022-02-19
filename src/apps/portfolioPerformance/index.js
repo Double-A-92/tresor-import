@@ -3,8 +3,15 @@ import {
   parseGermanNum,
   validateActivity,
   createActivityDateTime,
+  validateCashActivity,
 } from '@/helper';
-import { detectLocale, getKeyMap, getTypeMap, keyNormalizer } from './utils';
+import {
+  normalizeCashActivity,
+  detectLocale,
+  getKeyMap,
+  getTypeMap,
+  keyNormalizer,
+} from './utils';
 
 const activityNormalizer = typeKeyMap => activity => {
   const type = Object.keys(typeKeyMap).find(
@@ -59,6 +66,7 @@ const activityNormalizer = typeKeyMap => activity => {
 };
 
 const validate = activity => {
+  let isCashActivity = false;
   // Filter "Buy" cash oposite
   if (activity.type === 'Buy' && activity.amount < 0) {
     return [];
@@ -77,6 +85,20 @@ const validate = activity => {
   // transform transferIn to Buy
   if (activity.type === 'transferIn' || activity.type === 'bookIn') {
     activity.type = 'TransferIn';
+  }
+
+  // transform cashIn to TransferIn
+  if (activity.type === 'cashIn') {
+    isCashActivity = true;
+    activity.type = 'TransferIn';
+    activity.shares = Math.abs(activity.shares);
+  }
+
+  // transform cashOut to TransferOut
+  if (activity.type === 'cashOut') {
+    isCashActivity = true;
+    activity.type = 'TransferOut';
+    activity.shares = Math.abs(activity.shares);
   }
 
   // filter cash movements and other non-supported types
@@ -113,7 +135,12 @@ const validate = activity => {
     activity.price = +Big(activity.amount).div(Big(activity.shares));
   }
 
-  activity = validateActivity(activity, true);
+  if (isCashActivity) {
+    activity = validateCashActivity(activity);
+  } else {
+    activity = validateActivity(activity, true);
+  }
+
   if (activity === undefined) {
     return [];
   }
@@ -173,6 +200,7 @@ export const parsePages = content => {
 
   const activities = content
     .map(normalizeKeys)
+    .map(transaction => normalizeCashActivity(transaction))
     .filter(({ shares }) => shares !== undefined)
     .filter(({ type }) => Boolean(type))
     .map(normalizeActivity)
@@ -183,3 +211,5 @@ export const parsePages = content => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => false;

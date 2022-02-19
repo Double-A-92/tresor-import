@@ -1,6 +1,6 @@
 import Big from 'big.js';
-import { findImplementation } from '@/index';
 import * as comdirect from '../../src/brokers/comdirect';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -13,22 +13,7 @@ import {
 describe('Broker: comdirect', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can one page parsed with comdirect', () => {
-      allSamples.forEach(pages => {
-        expect(comdirect.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as comdirect', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(comdirect);
-      });
-    });
-  });
+  validateAllSamples(comdirect, allSamples, 'comdirekt');
 
   describe('Validate buys', () => {
     test('Can the order parsed from saving_plan', () => {

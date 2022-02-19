@@ -415,6 +415,7 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parseData = (textArr, type) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'consorsbank',
     type,
@@ -519,3 +520,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

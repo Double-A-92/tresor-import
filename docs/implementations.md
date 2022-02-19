@@ -14,6 +14,7 @@ a more detailed explanation is given behind brokername.
 | ebase                                                  | Transaction Log                                                      | Currently only the `.pdf` documents                                                |
 | Erste Bank (AT)                                        | Buy, Dividend                                                        |                                                                                    |
 | flatex / FinTech Group                                 | Buy, Sell, Dividend                                                  |                                                                                    |
+| FIL Fondsbank (FFB)                                    | Buy, Sell, Dividend                                                  |                                                                                    |
 | Fondsdepot Bank GmbH                                   | Depot Statement (Buy, Sell, Dividend, Reinvestment)                  | Limitation: PDF files created after July 2021 might not be readable anymore        |
 | Gratisbroker                                           | See Baader Bank                                                      |                                                                                    |
 | ING (DE)                                               | Buy, Sell, Dividend, Depot Statement                                 |                                                                                    |
@@ -23,6 +24,7 @@ a more detailed explanation is given behind brokername.
 | Portfolio Performance                                  | .csv file Containing Buys, Sells, Dividends, TransferIn, TransferOut | Must be cleared of splits, only `.csv` files generated via menu `File` -> `export` |
 | Postbank                                               | Buy, Sell, Dividend                                                  |                                                                                    |
 | Scalable Capital                                       | See Baader Bank                                                      |                                                                                    |
+| Quirion                                                | Buy, Sell, Dividend                                                  |                                                                                    |
 | Smartbroker                                            | Buy, Sell, Dividend, Knockouts                                       | (Portfolio Overview and Cost Information can't be parsed                           |
 | Trade Republic                                         | Buy, Sell, Dividend, Quarter/Year report                             |                                                                                    |
 | Union Investment                                       | Buy, Sell, Dividend                                                  |                                                                                    |

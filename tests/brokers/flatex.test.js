@@ -1,5 +1,5 @@
 import * as flatex from '../../src/brokers/flatex';
-import { findImplementation } from '../../src';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -13,22 +13,7 @@ import Big from 'big.js';
 describe('Broker: Flatex', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with Flatex', () => {
-      allSamples.forEach(pages => {
-        expect(flatex.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Flatex', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(flatex);
-      });
-    });
-  });
+  validateAllSamples(flatex, allSamples, 'flatex');
 
   describe('canParseDocument', () => {
     test('should accept Buy, Sell, Div Flatex PDFs only', () => {

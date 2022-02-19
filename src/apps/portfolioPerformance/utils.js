@@ -85,3 +85,20 @@ export const keyNormalizer = keyMap => transaction =>
     }),
     {}
   );
+
+export const normalizeCashActivity = transaction => {
+  if (
+    transaction.type === 'Einlage' ||
+    transaction.type === 'Entnahme' ||
+    transaction.type === 'Deposit' ||
+    transaction.type === 'Removal'
+  ) {
+    transaction.fee = 0;
+    transaction.tax = 0;
+    transaction.shares = transaction.amount;
+    transaction.price = 1;
+
+    if ('company' in transaction) delete transaction['company'];
+  }
+  return transaction;
+};

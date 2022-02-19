@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as baaderBank from '../../src/brokers/baaderBank';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -12,22 +12,7 @@ import {
 describe('Broker: scalable.capital', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with scalable.capital', () => {
-      allSamples.forEach(pages => {
-        expect(baaderBank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as scalable.capital', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(baaderBank);
-      });
-    });
-  });
+  validateAllSamples(baaderBank, allSamples, 'baaderbank');
 
   describe('Validate buys', () => {
     test('Can the market order be parsed from the document', () => {
@@ -200,6 +185,44 @@ describe('Broker: scalable.capital', () => {
         tax: 0,
       });
     });
+
+    test('Can parse document: 2021_finanzen.net_IE00BM67HT60', () => {
+      const activities = baaderBank.parsePages(buySamples[9]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'finanzen.zero',
+        type: 'Buy',
+        date: '2021-12-20',
+        datetime: '2021-12-20T07:28:52.000Z',
+        isin: 'IE00BM67HT60',
+        company: 'Xtr.(IE)-MSCI Wo.Inform.Techn. Registered Shares 1C USD o.N.',
+        shares: 10,
+        price: 56.96,
+        amount: 569.6,
+        fee: 0,
+        tax: 0,
+      });
+    });
+
+    test('Can parse document: 2021_finanzen.net_DE000A1YC996', () => {
+      const activities = baaderBank.parsePages(buySamples[10]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'finanzen.zero',
+        type: 'Buy',
+        date: '2021-06-15',
+        datetime: '2021-06-15T07:29:45.000Z',
+        isin: 'DE000A1YC996',
+        company: 'The Social Chain AG Namens-Aktien o.N.',
+        shares: 30,
+        price: 34.1,
+        amount: 1023,
+        fee: 0,
+        tax: 0,
+      });
+    });
   });
 
   describe('Validate sells', () => {
@@ -217,6 +240,44 @@ describe('Broker: scalable.capital', () => {
         shares: 9,
         price: 55.477,
         amount: 499.29,
+        fee: 0,
+        tax: 0,
+      });
+    });
+
+    test('Can parse document: 2021_finanzen.net_LU0496786574', () => {
+      const activities = baaderBank.parsePages(sellSamples[1]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'finanzen.zero',
+        type: 'Sell',
+        date: '2021-11-04',
+        datetime: '2021-11-04T10:35:10.000Z',
+        isin: 'LU0496786574',
+        company: 'MUL-LYXOR S&P 500 UCITS ETF Nam.-Ant. EUR Dis.oN',
+        shares: 1,
+        price: 41.4,
+        amount: 41.4,
+        fee: 0,
+        tax: 0.44,
+      });
+    });
+
+    test('Can parse document: 2021_smavesto_DE0006289473', () => {
+      const activities = baaderBank.parsePages(sellSamples[2]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'smavesto',
+        type: 'Sell',
+        date: '2021-08-31',
+        datetime: '2021-08-31T15:30:16.000Z',
+        isin: 'DE0006289473',
+        company: 'iS.eb.r.Go.G.1.5-2.5y U.ETF DE Inhaber-Anteile EUR (Dist)',
+        shares: 0.025,
+        price: 82.51,
+        amount: 2.06,
         fee: 0,
         tax: 0,
       });

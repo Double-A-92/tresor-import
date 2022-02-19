@@ -1,4 +1,3 @@
-import { findImplementation } from '@/index';
 import {
   allSamples,
   dividendSamples,
@@ -6,27 +5,13 @@ import {
   ignoredSamples,
   transactionLogSamples,
 } from './__mocks__/deutscheBank';
+import { validateAllSamples } from '../setup/brokers';
 import { deutschebank } from '../../src/brokers';
 
 describe('Broker: Deutsche Bank', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can parse all valid Deutsche Bank Samples', () => {
-      allSamples.forEach(pages => {
-        expect(deutschebank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Samples can be parsed by Deutsche Bank only!', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(deutschebank);
-      });
-    });
-  });
+  validateAllSamples(deutschebank, allSamples, 'deutschebank');
 
   describe('Validate Dividend', () => {
     test('Can the transactions be parsed from: 2020_agnc_invest.json', () => {

@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as smartbroker from '../../src/brokers/smartbroker';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -12,21 +12,7 @@ import {
 describe('Smartbroker broker test', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with smartbroker', () => {
-      allSamples.forEach(pages => {
-        expect(smartbroker.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as smartbroker', () => {
-      allSamples.forEach(sample => {
-        const implementations = findImplementation(sample, 'pdf');
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(smartbroker);
-      });
-    });
-  });
+  validateAllSamples(smartbroker, allSamples, 'smartbroker');
 
   describe('Buy', () => {
     test('should map pdf data of sample 1 correctly', () => {

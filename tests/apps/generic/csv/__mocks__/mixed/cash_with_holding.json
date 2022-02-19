@@ -1,0 +1,41 @@
+[
+  {
+    "time": "00:00:00",
+    "currency": "EUR",
+    "datetime": "2017-01-15T00:00:00.000Z",
+    "type": "TransferIn",
+    "amount": 2000,
+    "tax": 0,
+    "fee": 0,
+    "holding": "hld_61eef6ff47e546ac62012e71",
+    "date": "2017-01-15",
+    "price": 1,
+    "shares": 2000
+  },
+  {
+    "time": "00:00:00",
+    "currency": "EUR",
+    "datetime": "2018-01-15T00:00:00.000Z",
+    "type": "TransferIn",
+    "amount": 1000,
+    "tax": 0,
+    "fee": 0,
+    "holding": "hld_61eef6ff47e546ac62012e71",
+    "date": "2018-01-15",
+    "price": 1,
+    "shares": 1000
+  },
+  {
+    "time": "00:00:00",
+    "currency": "EUR",
+    "datetime": "2019-01-15T00:00:00.000Z",
+    "type": "TransferOut",
+    "amount": 1500,
+    "tax": 0,
+    "fee": 0,
+    "holding": "hld_61eef6ff47e546ac62012e71",
+    "date": "2019-01-15",
+    "price": 1,
+    "shares": 1500
+  }
+]

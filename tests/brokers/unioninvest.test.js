@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as unioninvest from '../../src/brokers/unioninvest';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -11,22 +11,7 @@ import {
 describe('Broker: Union Invest', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with the Union Invest parser', () => {
-      allSamples.forEach(pages => {
-        expect(unioninvest.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Union Invest file', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(unioninvest);
-      });
-    });
-  });
+  validateAllSamples(unioninvest, allSamples, 'unioninvest');
 
   describe('Validate buys', () => {
     test('Can parse a union invest buy from 2019 (1) ', () => {

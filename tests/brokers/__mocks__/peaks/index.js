@@ -16,3 +16,11 @@ export const numberFormatSamples = [
   require('./numberFormat/eng.json'),
   require('./numberFormat/ger.json'),
 ];
+
+export const allSamples = overviewSamples.concat(
+  buySamples,
+  dividendSamples,
+  feesSamples,
+  unknownSamples,
+  numberFormatSamples
+);
