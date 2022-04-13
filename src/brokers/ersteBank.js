@@ -259,7 +259,9 @@ export const parsePages = content => {
   const broker = 'ersteBank';
   const [fxRate, foreignCurrency] = findForeignCurrencyFxRate(pdfPagesConcat);
 
-  let type, amount, shares, isin, company, date, time, price, tax, fee;
+  /** @type {Importer.ActivityTypeUnion} */
+  let type;
+  let amount, shares, isin, company, date, time, price, tax, fee;
 
   if (isBuy(pdfPagesConcat)) {
     type = 'Buy';
@@ -287,7 +289,7 @@ export const parsePages = content => {
     type = 'Dividend';
     [isin, company] = findCompanyIsinDividend(pdfPagesConcat);
     date = findDateDividend(pdfPagesConcat);
-    amount = findAmountDividend(pdfPagesConcat, fxRate);
+    amount = findAmountDividend(pdfPagesConcat);
     shares = findSharesDividend(pdfPagesConcat);
     price = +Big(amount).div(shares);
     fee = 0;
@@ -301,6 +303,7 @@ export const parsePages = content => {
     'dd.MM.yyyy HH:mm:ss'
   );
 
+  /** @type {Importer.Activity} */
   let activity = {
     broker: broker,
     type: type,
@@ -328,3 +331,5 @@ export const parsePages = content => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

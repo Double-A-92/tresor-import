@@ -253,6 +253,7 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parseData = content => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'cortalconsors',
   };
@@ -310,3 +311,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

@@ -153,8 +153,10 @@ const findTax = (textArr, fxRate) => {
       totalTax = totalTax.minus(foreignTax);
     }
   }
-  const capitalTaxIdx = textArr.findIndex(line =>
-    line.includes('Kapitalertragssteuer')
+  const capitalTaxIdx = textArr.findIndex(
+    line =>
+      line.includes('Kapitalertragssteuer') ||
+      line.includes('Kapitalertragsteuer')
   );
   if (capitalTaxIdx >= 0) {
     totalTax = totalTax.minus(
@@ -256,6 +258,7 @@ const parseDepotStatementEntry = (content, startLineNumber) => {
     sharesLine = sharesLine.replace('.', ',');
   }
 
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'traderepublic',
     type: 'TransferIn',
@@ -294,6 +297,7 @@ const parseOverviewStatement = content => {
 // Individual transaction file
 const parseBuySellDividend = (textArr, docType) => {
   const [fxRate, foreignCurrency] = findForeignInformation(textArr);
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'traderepublic',
     type: docType,
@@ -343,6 +347,7 @@ const parseOption = content => {
   const activityIdx = content.indexOf('Tilgung');
   const isinIdx = findFirstIsinIndexInArray(content);
   const amountIdx = content.indexOf('Kurswert') + 1;
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'traderepublic',
     type: 'Sell',
@@ -399,3 +404,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

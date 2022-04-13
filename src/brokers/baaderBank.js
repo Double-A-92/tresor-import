@@ -20,6 +20,8 @@ const getDocumentType = content => {
     return 'Dividend';
   } else if (content.includes('Perioden-Kontoauszug: EUR-Konto')) {
     return 'AccountStatement';
+  } else if (content.includes('Rechnungsabschluss: EUR')) {
+    return 'AccountClearing';
   }
 };
 
@@ -32,8 +34,22 @@ const getBroker = content => {
     return 'oskar';
   }
 
-  if (content.some(line => line.includes('Scalable Capital Vermögensverw'))) {
+  if (
+    content.some(line => line.includes('finanzen.net zero GmbH')) ||
+    content.some(line => line.includes('DonauCapital Pure Investment GmbH'))
+  ) {
+    return 'finanzen.zero';
+  }
+
+  if (
+    content.some(line => line.includes('Scalable Capital Vermögensverw')) ||
+    content.some(line => line.includes('www.scalable.capital'))
+  ) {
     return 'scalablecapital';
+  }
+
+  if (content.some(line => line.includes('Smavesto GmbH'))) {
+    return 'smavesto';
   }
 };
 
@@ -197,7 +213,7 @@ const findExchangeRate = (content, currency) => {
 };
 
 const findTax = content => {
-  var totalTax = Big(0);
+  let totalTax = Big(0);
 
   // We should only parse the tax amounts before the information about the tax calculation.
   const lineNumberWithTaxCalculations = findLineNumberByContent(
@@ -263,6 +279,25 @@ const findTax = content => {
   return +totalTax;
 };
 
+const findFee = content => {
+  let total = Big(0);
+
+  const lineWithMinimumSurcharge = findLineNumberByContent(
+    content,
+    'Mindermengenzuschlag'
+  );
+  if (
+    lineWithMinimumSurcharge > -1 &&
+    lineWithMinimumSurcharge + 1 < content.length
+  ) {
+    total = total.plus(
+      Big(parseGermanNum(content[lineWithMinimumSurcharge + 1]))
+    );
+  }
+
+  return +total;
+};
+
 export const canParseDocument = (pages, extension) => {
   const content = pages.flat();
   return (
@@ -273,15 +308,17 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parsePage = (content, documentType) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: getBroker(content),
     type: documentType,
     isin: findISIN(content),
     shares: findShares(content, documentType),
     amount: findAmount(content, documentType),
-    fee: 0,
+    fee: findFee(content),
     tax: findTax(content),
   };
+
   let date, time;
   switch (documentType) {
     case 'Buy':
@@ -319,11 +356,17 @@ const parseAccountStatement = content => {
       break;
     }
 
-    let companyLineNumber, type, isin, company, shares, amount;
+    /** @type {Importer.ActivityTypeUnion} */
+    let type;
+    let companyLineNumber, isin, company, shares, amount;
     if (content[startIndex + 2] === 'Kauf') {
       type = 'Buy';
       amount = parseGermanNum(content[startIndex + 3]);
       companyLineNumber = startIndex + 5;
+    } else if (content[startIndex + 3] === 'Verkauf') {
+      type = 'Sell';
+      amount = parseGermanNum(content[startIndex + 2]);
+      companyLineNumber = startIndex + 4;
     } else if (content[startIndex + 3] === 'Coupons/Dividende') {
       type = 'Dividend';
       amount = parseGermanNum(content[startIndex + 2]);
@@ -368,10 +411,22 @@ export const parsePages = contents => {
   const content = contents.flat();
   const documentType = getDocumentType(content);
 
-  if (documentType === 'AccountStatement') {
-    activities.push(...parseAccountStatement(content));
-  } else if (['Buy', 'Sell', 'Dividend'].includes(documentType)) {
-    activities.push(parsePage(content, documentType));
+  switch (documentType) {
+    case 'AccountClearing':
+      return {
+        activities,
+        status: 7,
+      };
+
+    case 'AccountStatement':
+      activities.push(...parseAccountStatement(content));
+      break;
+
+    case 'Buy':
+    case 'Dividend':
+    case 'Sell':
+      activities.push(parsePage(content, documentType));
+      break;
   }
 
   return {
@@ -379,3 +434,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

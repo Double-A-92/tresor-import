@@ -6,7 +6,7 @@ import {
   validateActivity,
   findNextLineIndexByRegex,
   findFirstSearchtermIndexInArray,
-  findPreviousRegexMatchIdx
+  findPreviousRegexMatchIdx,
 } from '@/helper';
 
 const idStringLong =
@@ -25,6 +25,7 @@ const parseTransactionLog = content => {
       /^[A-Z]{3}$/,
       txIdx + 2
     );
+    /** @type {Partial<Importer.Activity>} */
     let activity = {
       broker: 'deutschebank',
       shares: Math.abs(parseGermanNum(content[txIdx + 1])),
@@ -71,9 +72,10 @@ const parseTransactionLog = content => {
 const parseDepotStatus = content => {
   let activities = [];
   let idx = findNextLineIndexByRegex(content, /^[A-Z0-9]{6}$/);
-  const dateTimeLine = content[
-    content.findIndex(line => line.startsWith('Vermögensaufstellung ')) + 4
-  ].split(/\s+/);
+  const dateTimeLine =
+    content[
+      content.findIndex(line => line.startsWith('Vermögensaufstellung ')) + 4
+    ].split(/\s+/);
   const [date, datetime] = createActivityDateTime(
     dateTimeLine[2],
     dateTimeLine[4]
@@ -85,6 +87,7 @@ const parseDepotStatus = content => {
   while (idx >= 0) {
     const sharesIdx = findPreviousRegexMatchIdx(content, idx, /^\d+(,\d+)?$/);
     if (/^[A-Z]{3}$/.test(content[idx + 1])) {
+      /** @type {Importer.Activity} */
       let activity = {
         broker: 'deutschebank',
         type: 'TransferIn',
@@ -205,7 +208,14 @@ const getDocumentType = content => {
   }
 };
 
+/**
+ *
+ * @param {string} pagesFlat
+ * @param {Importer.ActivityTypeUnion} activityType
+ * @returns {Importer.Activity}
+ */
 const parseDividend = (pagesFlat, activityType) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'deutschebank',
     type: activityType,
@@ -226,7 +236,7 @@ const parseDividend = (pagesFlat, activityType) => {
   activity.price = +Big(activity.amount).div(activity.shares);
   activity.fee = 0;
   activity.tax = findDividendTax(pagesFlat, activity.fxRate);
-  return activity;
+  return /** @type {Importer.Activity} */ (activity);
 };
 
 export const canParseDocument = (document, extension) => {
@@ -244,6 +254,7 @@ export const canParseDocument = (document, extension) => {
 export const parsePages = pages => {
   const pagesFlat = pages.flat();
   const type = getDocumentType(pagesFlat);
+  /** @type {Importer.Activity} */
   let activity;
   switch (type) {
     case 'Dividend': {
@@ -287,3 +298,5 @@ export const parsePages = pages => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

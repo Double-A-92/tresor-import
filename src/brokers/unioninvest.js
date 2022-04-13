@@ -241,6 +241,7 @@ const parseDiv = (pdfPage, activityIdx, dateIdx) => {
   // The documents from unioninvest didn't contains any order time
   const [date, datetime] = createActivityDateTime(pdfPage[dateIdx], undefined);
 
+  /** @type {Importer.Activity} */
   let activity = {
     broker: 'unioninvest',
     type: 'Dividend',
@@ -283,10 +284,9 @@ const parseDivRebuy = (pdfPage, reinvestIdx, dividend) => {
 
 const parseDividend = (pdfPage, activityIdx) => {
   let activities = [];
-  const companyIsinDict = createCompanyIsinDict(pdfPage);
   const dateIdx =
     pdfPage.slice(activityIdx).findIndex(t => dateRegex.test(t)) + activityIdx;
-  const dividend = parseDiv(pdfPage, activityIdx, dateIdx, companyIsinDict);
+  const dividend = parseDiv(pdfPage, activityIdx, dateIdx);
   activities.push(validateActivity(dividend));
 
   // The dividend was automatically reinvested, thus we need another buy
@@ -398,3 +398,5 @@ export const parsePages = pdfPages => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

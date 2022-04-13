@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as dkb from '../../src/brokers/dkb';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -12,22 +12,7 @@ import {
 describe('DKB broker', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with DKB', () => {
-      allSamples.forEach(pages => {
-        expect(dkb.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as DKB', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(dkb);
-      });
-    });
-  });
+  validateAllSamples(dkb, allSamples, 'dkb');
 
   describe('Buy', () => {
     test('should map pdf data of sample 1 correctly', () => {
@@ -79,7 +64,7 @@ describe('DKB broker', () => {
         shares: 0.7419,
         price: 353.8346,
         amount: 262.5,
-        fee: 1.5,
+        fee: -11,
         tax: 0,
       });
     });
@@ -331,8 +316,28 @@ describe('DKB broker', () => {
       });
     });
 
-    test('Should map the document correctly: 2020_deutsche_telekom.json', () => {
+    test('should map pdf data of sample 5 correctly', () => {
       const activities = dkb.parsePages(dividendsSamples[4]).activities;
+
+      expect(activities[0]).toEqual({
+        broker: 'dkb',
+        type: 'Dividend',
+        date: '2021-06-21',
+        datetime: '2021-06-21T' + activities[0].datetime.substring(11),
+        isin: 'IE0032077012',
+        company: 'INVESCOMI3 NASDAQ100 ETF REGISTERED SHARES DIS O.N.',
+        shares: 5.657,
+        price: 0.23864238995934242,
+        amount: 1.35,
+        fee: 0,
+        tax: 0,
+        fxRate: 1.191,
+        foreignCurrency: 'USD',
+      });
+    });
+
+    test('Should map the document correctly: 2020_deutsche_telekom.json', () => {
+      const activities = dkb.parsePages(dividendsSamples[5]).activities;
 
       expect(activities[0]).toEqual({
         broker: 'dkb',
@@ -350,7 +355,7 @@ describe('DKB broker', () => {
     });
 
     test('Should map the document correctly: ertragsabrechnung_fond.json', () => {
-      const activities = dkb.parsePages(dividendsSamples[5]).activities;
+      const activities = dkb.parsePages(dividendsSamples[6]).activities;
 
       expect(activities[0]).toEqual({
         broker: 'dkb',
@@ -365,6 +370,24 @@ describe('DKB broker', () => {
         amount: 0.26,
         fee: 0,
         tax: 0,
+      });
+    });
+
+    test('Should map the document correctly: 2021_FR0000120271.json', () => {
+      const activities = dkb.parsePages(dividendsSamples[7]).activities;
+
+      expect(activities[0]).toEqual({
+        broker: 'dkb',
+        type: 'Dividend',
+        date: '2022-01-13',
+        datetime: '2022-01-13T' + activities[0].datetime.substring(11),
+        isin: 'FR0000120271',
+        company: 'TOTALENERGIES SE ACTIONS AU PORTEUR EO 2,50',
+        shares: 135,
+        price: 0.66,
+        amount: 89.1,
+        fee: 0,
+        tax: 22.87,
       });
     });
   });

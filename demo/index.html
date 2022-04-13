@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Tresor.one PDF Import Demo</title>
+  <title>Parqet Import Demo</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -18,16 +18,16 @@
     <section class="section">
       <div class="container" style="max-width: 400px; margin: 0 auto;">
         <h1 class="title">
-          📈 Tresor One
+          📈 Parqet
         </h1>
         <p class="subtitle">
-          PDF Import
+          Import
         </p>
         <p>
         <div class="drop-zone">
           <input type="file" class="file-input" ref="myFiles" @change="fileHandler" multiple/>
           <span class="drop-zone-label">
-            PDFs / PP CSV Export hinzufügen
+            PDFs / CSV Export hinzufügen
           </span>
         </div>
           <br>
@@ -61,7 +61,7 @@
                     <div class="level-right">
                       <div class="level-item">
                         <p>
-                          <span><small><a href="https://github.com/codeofsumit/tresor-import/blob/master/docs/status_code.md" target="_blank">(Status-Codes)</a></small></span>
+                          <span><small><a href="https://github.com/tresorone/tresor-import/blob/master/docs/status_code.md" target="_blank">(Status-Codes)</a></small></span>
                         </p>
                       </div>
                     </div>
@@ -104,7 +104,7 @@
                 </div>
                 <p style="margin: .5em 0 0">
                   <strong>
-                    <small v-if="activity.holding">{{ getHoldingName(activity.holding) }}</small>
+                    <small v-if="activity.holding">{{ activity.holding }}</small>
                     <small v-else>{{ activity.company }}</small>
                   </strong>
                 </p>

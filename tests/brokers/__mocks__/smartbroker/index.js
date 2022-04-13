@@ -19,6 +19,7 @@ export const dividendSamples = [
   require('./dividend/2021_ish_eo_st.json'),
   require('./dividend/2021_wp_carey_inc.json'),
   require('./dividend/2020_realty_income.json'),
+  require('./dividend/2022_GB0002875804.json'),
 ];
 
 export const transferInSamples = [

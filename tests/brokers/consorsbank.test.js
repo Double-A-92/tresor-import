@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as consorsbank from '../../src/brokers/consorsbank';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -10,22 +10,7 @@ import {
 console.error = jest.fn();
 
 describe('Broker: Consorsbank', () => {
-  describe('Check all documents', () => {
-    test('Can the document parsed with Consorsbank', () => {
-      allSamples.forEach(pages => {
-        expect(consorsbank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Consorsbank', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(consorsbank);
-      });
-    });
-  });
+  validateAllSamples(consorsbank, allSamples, 'consorsbank');
 
   describe('Buy', () => {
     test('should map pdf data of sample 1 correctly', () => {
@@ -428,6 +413,25 @@ describe('Broker: Consorsbank', () => {
         fee: 4.45,
       });
     });
+
+    test('Should map the document correctly: 2021_twist_bioscience', () => {
+      const result = consorsbank.parsePages(buySamples[19]);
+      expect(result.status).toEqual(0);
+      expect(result.activities[0]).toEqual({
+        broker: 'consorsbank',
+        type: 'Buy',
+        company: 'TWIST BIOSCIENCEDL-,00001',
+        date: '2021-10-06',
+        datetime: '2021-10-06T17:47:35.000Z',
+        isin: 'US90184D1000',
+        wkn: 'A2N7L2',
+        price: 86.4,
+        shares: 20,
+        amount: 1728,
+        tax: 0,
+        fee: 9.95,
+      });
+    });
   });
 
   describe('Sell', () => {
@@ -487,6 +491,28 @@ describe('Broker: Consorsbank', () => {
           price: 2.999285714285714,
           shares: 14,
           tax: 0,
+          type: 'Sell',
+        },
+      ]);
+    });
+
+    test('Can parse document: 2021_DE0006047004', () => {
+      const result = consorsbank.parsePages(sellSamples[3]);
+
+      expect(result.status).toEqual(0);
+      expect(result.activities).toEqual([
+        {
+          amount: 2180.22,
+          broker: 'consorsbank',
+          company: 'HEIDELBERGCEMENT AG O.N.',
+          date: '2021-05-10',
+          datetime: '2021-05-10T13:54:11.000Z',
+          fee: 10.4,
+          isin: 'DE0006047004',
+          wkn: '604700',
+          price: 75.18,
+          shares: 29,
+          tax: 117.66,
           type: 'Sell',
         },
       ]);

@@ -48,7 +48,7 @@ new Vue({
       return this.numberWithCommas(p.toFixed(2));
     },
     handleParserResults(result) {
-      if (result.activities) {
+      if (result.activities && result.activities.length) {
         console.table(result.activities);
       }
 
@@ -72,16 +72,32 @@ new Vue({
         return;
       }
 
-      const result = parseActivitiesFromPages(content, this.jsonExtension);
+      let activities = [];
+      let status = 0;
+
+      try {
+        activities = parseActivitiesFromPages(
+          content,
+          `demo_file.${this.jsonExtension}`,
+          this.jsonExtension
+        );
+      } catch (e) {
+        console.error(e);
+        if (e.data && e.data.status) {
+          status = e.data.status;
+        } else {
+          status = 3; // unexpected error parsing (e.g. JSON.parse didn't work)
+        }
+      }
 
       this.clearResults();
 
       this.handleParserResults({
         file: 'json.' + this.jsonExtension,
         content: this.jsonContent,
-        activities: result.activities,
-        status: result.status,
-        successful: result.activities !== undefined && result.status === 0,
+        activities,
+        status,
+        successful: activities !== undefined && status === 0,
       });
     },
     copyContentToClipboard(name) {
@@ -100,17 +116,33 @@ new Vue({
       this.clearResults();
       Array.from(this.$refs.myFiles.files).forEach(file => {
         parseFile(file).then(parsedFile => {
-          const result = parseActivitiesFromPages(
-            parsedFile.pages,
-            parsedFile.extension
-          );
+          let activities = [];
+          let status = 0;
 
-          result.file = file.name;
-          result.content = parsedFile.pages;
-          result.successful =
-            result.activities !== undefined && result.status === 0;
+          try {
+            activities = parseActivitiesFromPages(
+              parsedFile.pages,
+              file.name,
+              parsedFile.extension
+            );
+          } catch (e) {
+            console.error(e);
+            if (e.data && e.data.status) {
+              status = e.data.status;
+            } else {
+              status = 3; // unexpected error parsing (e.g. JSON.parse didn't work)
+            }
+          }
 
-          this.handleParserResults(result);
+          this.clearResults();
+
+          this.handleParserResults({
+            file: file.name,
+            content: parsedFile.pages,
+            activities,
+            status,
+            successful: activities !== undefined && status === 0,
+          });
         });
       });
     },

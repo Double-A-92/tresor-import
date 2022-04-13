@@ -7,8 +7,10 @@ import {
   validateActivity,
 } from '@/helper';
 
-const getValueByPreviousElement = (textArr, prev) => {
-  const index = textArr.findIndex(t => t.includes(prev));
+const getValueByPreviousElement = (textArr, prev, startsWith = false) => {
+  const index = textArr.findIndex(t =>
+    !startsWith ? t.includes(prev) : t.startsWith(prev)
+  );
   if (index < 0) {
     return '';
   }
@@ -122,6 +124,15 @@ const findFee = pages => {
     if (transferValue !== '') {
       totalFee = totalFee.plus(Big(parseGermanNum(transferValue)));
     }
+
+    const discountValue = getValueByPreviousElement(
+      page,
+      'Kundenbonifikation ',
+      true
+    );
+    if (discountValue !== '') {
+      totalFee = totalFee.minus(Big(parseGermanNum(discountValue)));
+    }
   });
 
   return +totalFee;
@@ -154,11 +165,29 @@ const findPayout = (content, baseCurrency) => {
     );
   }
 
-  const currencyLine = content[payoutLineIndex + 2];
-  const payout =
-    currencyLine === baseCurrency
-      ? content[payoutLineIndex + 1]
-      : content[payoutLineIndex + 3];
+  // Payouts and currencies can be in the same or a separate lines
+  // 4 lines may contain foreignCurrency, baseCurrency and payout
+  const currencyAndPayoutLines = content.slice(
+    payoutLineIndex + 1,
+    payoutLineIndex + 5
+  );
+
+  // Search for baseCurrency, payout value is always above that line
+  let payoutIndex = currencyAndPayoutLines.findIndex(
+    line => line === baseCurrency
+  );
+
+  if (payoutIndex === -1) {
+    // Search for baseCurrency and payout in same line e.g. 1.11+ EUR
+    payoutIndex = currencyAndPayoutLines.findIndex(
+      line => line.includes(baseCurrency) && line !== baseCurrency
+    );
+  } else {
+    // Reduce the line number of one to get the amount because we currently have the currency line.
+    payoutIndex--;
+  }
+
+  const payout = currencyAndPayoutLines[payoutIndex];
 
   return Big(parseGermanNum(payout.split(/\s+/)[0]));
 };
@@ -230,18 +259,27 @@ const findForeignInformation = content => {
     }
   }
 
-  let baseCurrencyLineIndex = content.findIndex(
-    line => line === 'Ausmachender Betrag'
+  // Get baseCurrency from line 'Umrechnung in $CURR'
+  let baseCurrencyLineIndex = content.findIndex(line =>
+    line.includes('Umrechnung in')
   );
-  if (baseCurrencyLineIndex < 0) {
-    baseCurrencyLineIndex = content.findIndex(
-      line => line === 'Berechnungsgrundlage für die Kapitalertragsteuer'
-    );
-  }
-  if (baseCurrencyLineIndex) {
-    baseCurrency = content[baseCurrencyLineIndex + 2];
-  }
 
+  if (baseCurrencyLineIndex > 0) {
+    baseCurrency = content[baseCurrencyLineIndex].split(' ')[2].trim();
+  } else {
+    baseCurrencyLineIndex = content.findIndex(
+      line => line === 'Ausmachender Betrag'
+    );
+
+    if (baseCurrencyLineIndex < 0) {
+      baseCurrencyLineIndex = content.findIndex(
+        line => line === 'Berechnungsgrundlage für die Kapitalertragsteuer'
+      );
+    }
+    if (baseCurrencyLineIndex) {
+      baseCurrency = content[baseCurrencyLineIndex + 2];
+    }
+  }
   return [Big(parseGermanNum(fxRate)), foreignCurrency, baseCurrency];
 };
 
@@ -262,6 +300,7 @@ const parseSavingsplan = content => {
       'dd.MM.yyyy',
       'dd.MM.yyyy HH:mm:ss'
     );
+    /** @type {Partial<Importer.Activity>} */
     let activity = {
       broker: 'dkb',
       type: 'Buy',
@@ -332,7 +371,7 @@ export const canParseDocument = (pages, extension) => {
       // Some documents have the BIC inside
       (allPages.some(line => line.includes('BIC BYLADEM1001')) ||
         // And some in the first line the Zip-Code and City. For multipage documents the information are on line two.
-        allPages.slice(0, 3).some(line => line === '10919 Berlin')) &&
+        allPages.slice(0, 5).some(line => line === '10919 Berlin')) &&
       getDocumentType(allPages) !== undefined) ||
     // This is the case for savings plan summaries, they don't contain the strings above.
     allPages.includes('Im Abrechnungszeitraum angelegter Betrag')
@@ -360,6 +399,7 @@ export const parsePages = pages => {
   const pieceIdx = allPages.findIndex(t => t.includes('Stück'));
   const isinIdx = findISINIdx(allPages, pieceIdx);
 
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'dkb',
     type: typeOfDocument,
@@ -431,3 +471,5 @@ export const parsePages = pages => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

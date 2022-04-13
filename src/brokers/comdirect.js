@@ -53,7 +53,7 @@ const findDateBuySell = textArr => {
   return dateLine.match(/[0-9]{2}.[0-9]{2}.[1-2][0-9]{3}/)[0];
 };
 
-const findDateDividend = (textArr, formatId = false) => {
+const findDateDividend = (textArr, formatId = -1) => {
   let date;
   const valutaIdx = textArr.findIndex(t => t.includes('Valuta'));
   if (formatId === 2) {
@@ -132,7 +132,7 @@ const findDividendShares = textArr => {
 
 const findAmount = (textArr, fxRate, foreignCurrency, formatId) => {
   let isInForeignCurrency = false;
-  let amount = 0;
+  let amount;
   // Sometimes orders are split across multiple sells. This needs to be
   // handled differently. There are no tests for split sells in foreign currencies
   // at the moment so issues might arise here
@@ -253,14 +253,19 @@ const findTax = (textArr, fxRate, formatId) => {
   // Relevant for Sell Operations and TaxInfo Dividends
   let localTax = 0;
   const payedTaxIndex = textArr.indexOf('abgeführte Steuern');
-  if (payedTaxIndex >= 0) {
-    let lineWithTaxValue;
+  const refundedTaxIndex = textArr.indexOf('erstattete Steuern');
+
+  if (payedTaxIndex >= 0 || refundedTaxIndex >= 0) {
+    const lineNumber = payedTaxIndex >= 0 ? payedTaxIndex : refundedTaxIndex;
+
+    let value;
     if (formatId === 1) {
-      lineWithTaxValue = textArr[payedTaxIndex + 2];
+      value = textArr[lineNumber + 2];
     } else {
-      lineWithTaxValue = textArr[payedTaxIndex + 1].split(/\s+/)[1];
+      value = textArr[lineNumber + 1].split(/\s+/)[1];
     }
-    localTax = Math.abs(parseGermanNum(lineWithTaxValue));
+
+    localTax = +Big(parseGermanNum(value)).mul(-1);
   }
 
   return [+Big(withholdingTax).plus(localTax), withholdingTax];
@@ -394,6 +399,7 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parseData = (textArr, type) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'comdirect',
     type,
@@ -432,7 +438,11 @@ const parseData = (textArr, type) => {
       activity.amount = +findAmount(textArr, fxRate, foreignCurrency, formatId);
       activity.price = +Big(activity.amount).div(activity.shares);
       activity.fee = findFee(textArr, activity.amount, true, formatId);
-      activity.tax = findTax(textArr, fxRate, formatId)[0];
+
+      const [tax, withholdingTax] = findTax(textArr, fxRate, formatId);
+      // "angerechnete ausländische Quellensteuer:" should be not relevant for sell operations.
+      activity.tax = +Big(tax).minus(withholdingTax);
+
       break;
     }
     case 'Dividend': {
@@ -496,3 +506,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

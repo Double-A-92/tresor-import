@@ -18,12 +18,14 @@ export const buySamples = [
   require('./buy/2020_fraport.json'),
   require('./buy/2020_palantir.json'),
   require('./buy/2021_tui_special_buy.json'),
+  require('./buy/2021_twist_bioscience.json'),
 ];
 
 export const sellSamples = [
   require('./sell/sell1.json'),
   require('./sell/sell2.json'),
   require('./sell/2021_tui_priority_sell.json'),
+  require('./sell/2021_DE0006047004.json'),
 ];
 
 export const dividendsSamples = [

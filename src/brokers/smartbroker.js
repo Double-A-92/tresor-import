@@ -10,8 +10,8 @@ const findTax = (textArr, fxRate) => {
   let completeTax = Big(0);
   const isTaxReturn = textArr.includes('Steuerausgleich nach § 43a EStG:');
 
-  const capitalTaxIndex = textArr.findIndex(t =>
-    t.includes('Kapitalertragsteuer')
+  const capitalTaxIndex = textArr.findIndex(
+    t => t.includes('Kapitalertragsteuer') && !t.startsWith('im laufenden Jahr')
   );
   if (capitalTaxIndex > 0) {
     completeTax = completeTax.plus(
@@ -19,8 +19,9 @@ const findTax = (textArr, fxRate) => {
     );
   }
 
-  const solidarityTaxIndex = textArr.findIndex(t =>
-    t.includes('Solidaritätszuschlag')
+  const solidarityTaxIndex = textArr.findIndex(
+    t =>
+      t.includes('Solidaritätszuschlag') && !t.startsWith('im laufenden Jahr')
   );
   if (solidarityTaxIndex > 0) {
     completeTax = completeTax.plus(
@@ -30,7 +31,9 @@ const findTax = (textArr, fxRate) => {
 
   const churchTaxIndex = textArr.findIndex(
     line =>
-      line.includes('Kirchensteuer') && !line.includes('Kapitalertragsteuer')
+      line.includes('Kirchensteuer') &&
+      !line.includes('Kapitalertragsteuer') &&
+      !line.startsWith('im laufenden Jahr')
   );
   if (churchTaxIndex > 0) {
     completeTax = completeTax.plus(parseGermanNum(textArr[churchTaxIndex + 2]));
@@ -59,6 +62,11 @@ const findTax = (textArr, fxRate) => {
   return +completeTax;
 };
 
+/**
+ *
+ * @param {Importer.Page} content
+ * @returns {[number?, string?]}
+ */
 const findFxRateAndForeignCurrency = content => {
   const fxRateLineNumber = content.findIndex(line =>
     line.includes('Devisenkurs')
@@ -140,8 +148,8 @@ export const canParseDocument = (pages, extension) => {
     extension === 'pdf' &&
     firstPageContent.some(
       line =>
-        line.includes(onvista.smartbrokerIdentificationStrings[0]) ||
-        line.includes(onvista.smartbrokerIdentificationStrings[1])
+        line.includes(onvista.negativeIdentificationStrings[0]) ||
+        line.includes(onvista.negativeIdentificationStrings[1])
     ) &&
     getDocumentType(firstPageContent) !== undefined
   );
@@ -149,6 +157,7 @@ export const canParseDocument = (pages, extension) => {
 
 const parseBuySellDividend = (pdfPages, type) => {
   const textArr = pdfPages.flat();
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'smartbroker',
     type,
@@ -199,6 +208,8 @@ const parseBuySellDividend = (pdfPages, type) => {
 const parseTurboKO = pdfPages => {
   const companyStartIdx = pdfPages.indexOf('Gattungsbezeichnung') + 1;
   const companyEndIdx = pdfPages.indexOf('Fälligkeit');
+
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'smartbroker',
     type: 'Sell',
@@ -220,6 +231,8 @@ const parseTurboKO = pdfPages => {
 
 const parseTransferIn = pdfPages => {
   const isRevision = pdfPages.includes('Anpassung Anschaffungsdaten');
+
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'smartbroker',
     type: 'TransferIn',
@@ -282,3 +295,5 @@ export const parsePages = pdfPages => {
       };
   }
 };
+
+export const parsingIsTextBased = () => true;

@@ -1,6 +1,6 @@
 import Big from 'big.js';
-import { findImplementation } from '@/index';
 import * as comdirect from '../../src/brokers/comdirect';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -13,22 +13,7 @@ import {
 describe('Broker: comdirect', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can one page parsed with comdirect', () => {
-      allSamples.forEach(pages => {
-        expect(comdirect.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as comdirect', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(comdirect);
-      });
-    });
-  });
+  validateAllSamples(comdirect, allSamples, 'comdirekt');
 
   describe('Validate buys', () => {
     test('Can the order parsed from saving_plan', () => {
@@ -378,6 +363,46 @@ describe('Broker: comdirect', () => {
         amount: 302.25,
         fee: 6.8,
         tax: 0,
+      });
+    });
+
+    test('Can parse the sell order: 2021_US5949181045', () => {
+      const result = comdirect.parsePages(sellSamples[5]).activities;
+
+      expect(result.length).toEqual(1);
+      expect(result[0]).toEqual({
+        broker: 'comdirect',
+        type: 'Sell',
+        date: '2021-11-29',
+        datetime: '2021-11-29T07:04:00.000Z',
+        isin: 'US5949181045',
+        wkn: '870747',
+        company: 'Microsoft Corp.',
+        shares: 1,
+        price: 295,
+        amount: 295,
+        fee: 6.4,
+        tax: 47.61,
+      });
+    });
+    
+    test('Can parse the sell order: 2021_US5949181045_tax_debit', () => {
+      const activities = comdirect.parsePages(sellSamples[6]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'comdirect',
+        type: 'Sell',
+        date: '2021-11-30',
+        datetime: '2021-11-30T' + activities[0].datetime.substring(11),
+        isin: 'US5949181045',
+        wkn: '870747',
+        company: 'Microsoft Corp.',
+        shares: 0.55,
+        price: 294.6545454545454,
+        amount: 162.06,
+        fee: 0,
+        tax: -47.61,
       });
     });
   });

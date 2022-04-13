@@ -1,4 +1,5 @@
 import * as helper from '../../src/helper';
+import { ParqetActivityValidationError } from '../../src/errors';
 
 describe('Helper functions', () => {
   let consoleErrorSpy;
@@ -112,10 +113,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity for undefined has empty fields.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -134,14 +133,12 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity for traderepublic has empty fields.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
-    test('Activity with a date newer than today should be invalid', () => {
+    test('Activity with a date after today should be invalid', () => {
       var today = new Date();
 
       const activity = {
@@ -158,10 +155,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity date for comdirect has to be in the past.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -182,10 +177,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity date for comdirect is older than 1990-01-01.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -206,10 +199,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity datetime for comdirect has to be in the past.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -228,10 +219,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity datetime for comdirect is older than 1990-01-01.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -250,10 +239,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The shares in activity for comdirect must be a number greater than 0.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -272,10 +259,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The shares in activity for comdirect must be a number greater than 0.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -294,10 +279,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The price in activity for comdirect must be a number greater or equal 0.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -316,10 +299,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The price in activity for comdirect must be a number greater or equal 0.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -338,10 +319,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The amount in activity for comdirect must be a number greater or equal than 0.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -360,14 +339,12 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The amount in activity for comdirect must be a number greater or equal than 0.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
-    test('Activity with an unknown ISIN sheme should be invalid', () => {
+    test('Activity with an unknown ISIN scheme should be invalid', () => {
       const activity = {
         broker: 'comdirect',
         type: 'Dividend',
@@ -382,10 +359,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        "The activity ISIN for comdirect can't be valid with an invalid scheme.",
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -404,10 +379,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        "The activity type for comdirect can't be valid with an unknown type.",
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -426,10 +399,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        "The activity WKN for comdirect can't be valid with an invalid scheme.",
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
@@ -446,14 +417,12 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity for comdirect must have at least an ISIN or WKN.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
 
-    test('Activity without an company, isin or wkn should be invalid', () => {
+    test('Activity without a company, isin or wkn should be invalid', () => {
       const activity = {
         broker: 'comdirect',
         type: 'Buy',
@@ -466,10 +435,8 @@ describe('Helper functions', () => {
         tax: 0,
       };
 
-      expect(helper.validateActivity(activity, true)).toEqual(undefined);
-      expect(console.error).toHaveBeenLastCalledWith(
-        'The activity for comdirect must have at least a company, ISIN or WKN.',
-        activity
+      expect(() => helper.validateActivity(activity)).toThrowError(
+        ParqetActivityValidationError
       );
     });
   });

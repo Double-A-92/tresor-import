@@ -1,5 +1,5 @@
 import Big from 'big.js';
-import { findImplementation } from '@/index';
+import { validateAllSamples } from '../setup/brokers';
 import * as ersteBank from '../../src/brokers/ersteBank';
 import { buySamples, dividendSamples } from './__mocks__/ersteBank';
 
@@ -7,22 +7,7 @@ const allSamples = buySamples.concat(dividendSamples);
 describe('Broker: Erste Bank', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with Erste Bank', () => {
-      allSamples.forEach(pages => {
-        expect(ersteBank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Erste Bank', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(ersteBank);
-      });
-    });
-  });
+  validateAllSamples(ersteBank, allSamples, 'ersteBank');
 
   describe('Validate buys', () => {
     test('Map the buy order for AT0000APOST4 correctly', () => {

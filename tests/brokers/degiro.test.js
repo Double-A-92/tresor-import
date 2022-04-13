@@ -1,27 +1,12 @@
-import { findImplementation } from '@/index';
 import * as degiro from '../../src/brokers/degiro';
+import { validateAllSamples } from '../setup/brokers';
 import Big from 'big.js';
 import { transactionLog, depotOverview, allSamples } from './__mocks__/degiro';
 
 describe('Broker: DEGIRO', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with DEGIRO', () => {
-      allSamples.forEach(pages => {
-        expect(degiro.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as DEGIRO', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(degiro);
-      });
-    });
-  });
+  validateAllSamples(degiro, allSamples, degiro);
 
   describe('Validate transactionLog', () => {
     test('Can the transactions be parsed from: buy_only_transactions', () => {
@@ -42,6 +27,7 @@ describe('Broker: DEGIRO', () => {
         tax: 0,
         foreignCurrency: 'USD',
         fxRate: 1.1024,
+        currency: 'EUR',
       });
       expect(activities[6]).toEqual({
         broker: 'degiro',
@@ -55,6 +41,7 @@ describe('Broker: DEGIRO', () => {
         amount: 19753.76,
         fee: 25.28,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -78,6 +65,7 @@ describe('Broker: DEGIRO', () => {
         tax: 0,
         fxRate: 10.6185,
         foreignCurrency: 'SEK',
+        currency: 'EUR',
       });
       expect(activities[9]).toEqual({
         broker: 'degiro',
@@ -89,10 +77,11 @@ describe('Broker: DEGIRO', () => {
         shares: 8,
         price: 100.90625,
         amount: 807.25,
-        fee: 0,
-        tax: 0.52,
+        fee: 0.52,
+        tax: 0,
         fxRate: 1.1226,
         foreignCurrency: 'USD',
+        currency: 'EUR',
       });
     });
 
@@ -113,10 +102,11 @@ describe('Broker: DEGIRO', () => {
         shares: 47,
         price: 23.664468085106382,
         amount: 1112.23,
-        fee: 0,
-        tax: 0.66,
+        fee: 0.66,
+        tax: 0,
         fxRate: 1.2124,
         foreignCurrency: 'USD',
+        currency: 'EUR',
       });
       expect(activities[15]).toEqual({
         broker: 'degiro',
@@ -130,6 +120,7 @@ describe('Broker: DEGIRO', () => {
         amount: 601.4,
         fee: 2.66,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -149,10 +140,11 @@ describe('Broker: DEGIRO', () => {
         shares: 100,
         price: 11.7069,
         amount: 1170.69,
-        fee: 0,
-        tax: 0.83,
+        fee: 0.83,
+        tax: 0,
         fxRate: 1.216,
         foreignCurrency: 'USD',
+        currency: 'EUR',
       });
       expect(activities[236]).toEqual({
         broker: 'degiro',
@@ -166,6 +158,7 @@ describe('Broker: DEGIRO', () => {
         amount: 999.6,
         tax: 0,
         fee: 2.08,
+        currency: 'EUR',
       });
     });
 
@@ -189,6 +182,7 @@ describe('Broker: DEGIRO', () => {
         tax: 0,
         fxRate: 1.2134,
         foreignCurrency: 'USD',
+        currency: 'EUR',
       });
 
       expect(activities[3]).toEqual({
@@ -205,6 +199,7 @@ describe('Broker: DEGIRO', () => {
         tax: 0,
         fxRate: 1.0766,
         foreignCurrency: 'CHF',
+        currency: 'EUR',
       });
     });
 
@@ -226,6 +221,7 @@ describe('Broker: DEGIRO', () => {
         amount: 99.36,
         fee: 2.11,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -249,6 +245,7 @@ describe('Broker: DEGIRO', () => {
         shares: 30,
         amount: 2160.6,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -271,6 +268,7 @@ describe('Broker: DEGIRO', () => {
         amount: 937.25,
         fee: 10.56,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -292,6 +290,7 @@ describe('Broker: DEGIRO', () => {
         amount: 1596.4,
         fee: 3.76,
         tax: 0,
+        currency: 'EUR',
       });
 
       expect(activities[23]).toEqual({
@@ -306,6 +305,7 @@ describe('Broker: DEGIRO', () => {
         amount: 0.1,
         fee: 0,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -325,6 +325,7 @@ describe('Broker: DEGIRO', () => {
         amount: 23.73,
         fee: 23.73,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -344,6 +345,105 @@ describe('Broker: DEGIRO', () => {
         amount: 669.6,
         fee: 2.2,
         tax: 0,
+        currency: 'EUR',
+      });
+    });
+
+    test('Can parse document: 2022_degiro.ch.json', () => {
+      const activities = degiro.parsePages(transactionLog[10]).activities;
+
+      expect(activities.length).toEqual(10);
+      expect(activities[0]).toEqual({
+        broker: 'degiro',
+        type: 'Buy',
+        date: '2022-02-07',
+        datetime: '2022-02-07T08:26:00.000Z',
+        isin: 'LU0908500753',
+        company: 'LYXOR STOXX EUROPE 600 (DR) UCITS ETF',
+        shares: 3,
+        price: 210.56333333333333,
+        amount: 631.69,
+        fee: 2.65,
+        tax: 0,
+        currency: 'CHF',
+        foreignCurrency: 'EUR',
+        fxRate: 0.9452,
+      });
+      expect(activities[9]).toEqual({
+        broker: 'degiro',
+        type: 'Sell',
+        date: '2022-01-18',
+        datetime: '2022-01-18T08:06:00.000Z',
+        isin: 'DE0002635307',
+        company: 'ISHARES STOXX EUROPE 600 UCITS ETF (DE)',
+        shares: 2,
+        price: 49.62,
+        amount: 99.24,
+        fee: 0,
+        tax: 0,
+        currency: 'CHF',
+        foreignCurrency: 'EUR',
+        fxRate: 0.9588,
+      });
+    });
+
+    test('Can parse document: 2022_degiro.de.json', () => {
+      const activities = degiro.parsePages(transactionLog[11]).activities;
+
+      expect(activities.length).toEqual(76);
+      expect(activities[0]).toEqual({
+        broker: 'degiro',
+        type: 'Buy',
+        date: '2022-01-27',
+        datetime: '2022-01-27T10:35:00.000Z',
+        isin: 'IE00BM67HN09',
+        company: 'XTRACKERS MSCI WORLD CONSUMER STAPLES UCITS ETF 1C',
+        shares: 25,
+        price: 41.2588,
+        amount: 1031.47,
+        fee: 2.6,
+        tax: 0,
+        currency: 'CHF',
+        foreignCurrency: 'EUR',
+        fxRate: 0.9628,
+      });
+      expect(activities[74]).toEqual({
+        broker: 'degiro',
+        type: 'Buy',
+        date: '2021-04-09',
+        datetime: '2021-04-09T07:09:00.000Z',
+        isin: 'LU0340285161',
+        company: 'UBS ETF MSCI WORLD UCITS ETF (USD) ADIS',
+        shares: 1,
+        price: 268.29,
+        amount: 268.29,
+        fee: 2.28,
+        tax: 0,
+        currency: 'CHF',
+        foreignCurrency: 'EUR',
+        fxRate: 0.9091,
+      });
+    });
+
+    test('Can parse document: 2021_degiro.de_empty_values.json', () => {
+      const activities = degiro.parsePages(transactionLog[12]).activities;
+
+      expect(activities.length).toEqual(18);
+      expect(activities[11]).toEqual({
+        broker: 'degiro',
+        type: 'Sell',
+        date: '2021-09-15',
+        datetime: '2021-09-15T18:27:00.000Z',
+        isin: 'KYG851581069',
+        company: 'STONECO LTD-A',
+        shares: 1000,
+        price: 34.53192,
+        amount: 34531.92,
+        fee: 3.89,
+        tax: 0,
+        currency: 'EUR',
+        foreignCurrency: 'USD',
+        fxRate: 1.1818,
       });
     });
   });
@@ -362,10 +462,11 @@ describe('Broker: DEGIRO', () => {
         isin: 'GB00B18S7B29',
         company: 'AFC ENERGY PLC   LS -,001',
         shares: 17,
-        price: 0.67,
+        price: 0.6711764705882353,
         amount: 11.41,
         fee: 0,
         tax: 0,
+        currency: 'EUR',
       });
       expect(result.activities[5]).toEqual({
         broker: 'degiro',
@@ -379,6 +480,7 @@ describe('Broker: DEGIRO', () => {
         amount: 33.34,
         fee: 0,
         tax: 0,
+        currency: 'EUR',
       });
     });
 
@@ -399,6 +501,49 @@ describe('Broker: DEGIRO', () => {
         amount: 221.45,
         fee: 0,
         tax: 0,
+        currency: 'EUR',
+      });
+    });
+
+    test('Can parse document: 2021_degiro.ch.json', () => {
+      const result = degiro.parsePages(depotOverview[2]);
+
+      expect(result.status).toEqual(0);
+      expect(result.activities.length).toEqual(1);
+      expect(result.activities[0]).toEqual({
+        broker: 'degiro',
+        type: 'TransferIn',
+        date: '2021-04-19',
+        datetime: '2021-04-19T' + result.activities[0].datetime.substr(11),
+        isin: 'IE00B4L5Y983',
+        company: 'ISHRC MSCI WLD',
+        shares: 136,
+        price: 74.28661764705882,
+        amount: 10102.98,
+        fee: 0,
+        tax: 0,
+        currency: 'CHF',
+      });
+    });
+
+    test('Can parse document: 2022_degiro.de.json', () => {
+      const result = degiro.parsePages(depotOverview[3]);
+
+      expect(result.status).toEqual(0);
+      expect(result.activities.length).toEqual(20);
+      expect(result.activities[15]).toEqual({
+        broker: 'degiro',
+        type: 'TransferOut',
+        date: '2022-01-31',
+        datetime: '2022-01-31T' + result.activities[0].datetime.substr(11),
+        isin: 'DE0007493991',
+        company: 'STROEER SE & CO KGAA',
+        shares: 15,
+        price: 66,
+        amount: 990,
+        fee: 0,
+        tax: 0,
+        currency: 'EUR',
       });
     });
   });

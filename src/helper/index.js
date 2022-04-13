@@ -1,6 +1,5 @@
-import every from 'lodash/every';
-import values from 'lodash/values';
 import { DateTime } from 'luxon';
+import { ParqetActivityValidationError } from '@/errors';
 
 // Regex to match an ISIN-only string. The first two chars represent the country and the last one is the check digit.
 export const isinRegex = /^[A-Z]{2}[0-9A-Z]{9}[0-9]$/;
@@ -9,11 +8,33 @@ export const timeRegex = withSeconds => {
   return withSeconds ? /[0-2][0-9]:[0-9]{2}:[0-9]{2}/ : /[0-2][0-9]:[0-9]{2}/;
 };
 
+/**
+ *
+ * @param {string} content
+ * @returns {string}
+ */
+export const getGermanDate = content => {
+  return content.match(/[0-9]{2}.[0-9]{2}.[1-2][0-9]{3}/)[0];
+};
+
+/**
+ *
+ * @param {Importer.Page | string} content
+ * @param {boolean} [trimAndSplit=false]
+ * @returns {string}
+ */
 export function csvLinesToJSON(content, trimAndSplit = false) {
   let result = [];
 
   let lines = content;
+  //TODO: the trimAndSplit could be removed and typeof content used to decide weather we need to enter this branch
   if (trimAndSplit) {
+    if (typeof content !== 'string') {
+      throw new Error(
+        'trimAndSplit should only be true if a string is provided'
+      );
+    }
+
     lines = content.trim().split('\n');
   }
 
@@ -46,6 +67,7 @@ export function csvLinesToJSON(content, trimAndSplit = false) {
   return JSON.stringify(result);
 }
 
+/** @type { (n: string) => number } */
 export function parseGermanNum(n) {
   if (!n) {
     return 0;
@@ -53,12 +75,35 @@ export function parseGermanNum(n) {
   return parseFloat(n.replace(/\./g, '').replace(',', '.'));
 }
 
-// Gives the index for the first match of a regex within a 2D Array. Search is started at an optional offset
+/** @type { (n: string) => number } */
+export function parseSwissNumber(n) {
+  if (!n) {
+    return 0;
+  }
+
+  return parseFloat(n.replace(/[^-0-9.]+/g, ''));
+}
+
+/**
+ * Gives the index for the first match of a regex within a 2D Array. Search is started at an optional offset
+ *
+ * @param {string[]} array
+ * @param {RegExp} regex
+ * @param {number} [offset=0]
+ * @returns {number}
+ */
 export function findNextLineIndexByRegex(array, regex, offset = 0) {
   const nextIdx = array.slice(offset).findIndex(entry => regex.test(entry));
   return nextIdx >= 0 ? nextIdx + offset : -1;
 }
 
+/**
+ *
+ * @param {string[]} arr
+ * @param {number} idx
+ * @param {RegExp} regex
+ * @returns {number}
+ */
 export function findPreviousRegexMatchIdx(arr, idx, regex) {
   let bckwrdIdx = 1;
   while (idx - bckwrdIdx >= 0) {
@@ -70,14 +115,14 @@ export function findPreviousRegexMatchIdx(arr, idx, regex) {
   return -1;
 }
 
-export function validateActivity(activity, findSecurityAlsoByCompany = false) {
+function validateCommons(activity) {
   // All fields must have a value unequal undefined
-  if (!every(values(activity), a => !!a || a === 0)) {
-    console.error(
-      'The activity for ' + activity.broker + ' has empty fields.',
-      activity
+  if (!Object.values(activity).every(a => !!a || a === 0)) {
+    throw new ParqetActivityValidationError(
+      'Invalid fields. Activity must not contain fields with undefined, or empty values.',
+      activity,
+      6
     );
-    return undefined;
   }
 
   const tomorrow = new Date();
@@ -87,113 +132,99 @@ export function validateActivity(activity, findSecurityAlsoByCompany = false) {
   const oldestDate = new Date(1990, 1, 1);
   oldestDate.setUTCHours(0, 0, 0, 0);
 
-  // The date property must be present.
   if (activity.date === undefined) {
-    console.error(
-      'The activity date for ' + activity.broker + ' must be present.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'date'. Activity 'date' field value must not be 'undefined'.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  // The datetime property must be present.
   if (activity.datetime === undefined) {
-    console.error(
-      'The activity datetime for ' + activity.broker + ' must be present.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'datetime'. Activity 'datetime' field value must not be 'undefined'.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  // The date must be in the past.
   if (activity.date > tomorrow) {
-    console.error(
-      'The activity date for ' + activity.broker + ' has to be in the past.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'date'. Activity 'date' field value must be in the past.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  // The date must be not older than 1990-01-01
   if (activity.date < oldestDate) {
-    console.error(
-      'The activity date for ' + activity.broker + ' is older than 1990-01-01.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'date'. Activity 'date' field value must be after 1990-01-01.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  // The datetime must be in the past.
   if (activity.datetime > tomorrow) {
-    console.error(
-      'The activity datetime for ' +
-        activity.broker +
-        ' has to be in the past.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'datetime'. Activity 'datetime' field value must be in the past.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  // The datetime must be not older than 1990-01-01
   if (activity.datetime < oldestDate) {
-    console.error(
-      'The activity datetime for ' +
-        activity.broker +
-        ' is older than 1990-01-01.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'datetime'. Activity 'datetime' field value must be after 1990-01-01.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
   if (Number(activity.shares) !== activity.shares || activity.shares <= 0) {
-    console.error(
-      'The shares in activity for ' +
-        activity.broker +
-        ' must be a number greater than 0.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'shares'. Activity 'shares' field must be of type 'number' and greater than 0.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
   if (Number(activity.price) !== activity.price || activity.price < 0) {
-    console.error(
-      'The price in activity for ' +
-        activity.broker +
-        ' must be a number greater or equal 0.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'price'. Activity 'price' field must be of type 'number' greater than or equal to 0.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
   if (Number(activity.amount) !== activity.amount || activity.amount < 0) {
-    console.error(
-      'The amount in activity for ' +
-        activity.broker +
-        ' must be a number greater or equal than 0.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'amount'. Activity 'amount' field must be a number greater than or equal to 0.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
   if (Number(activity.fee) !== activity.fee) {
-    console.error(
-      'The fee amount in activity for ' +
-        activity.broker +
-        ' must be a number that can be positive, negative or 0. ',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'fee'. Activity 'fee' field must be of type 'number'.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
   if (Number(activity.tax) !== activity.tax) {
-    console.error(
-      'The tax amount in activity for ' +
-        activity.broker +
-        ' must be a number that can be positive, negative or zero.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid 'tax'. Activity 'tax' field must be of type 'number'.`,
+      activity,
+      6
     );
-    return undefined;
   }
+
+  return activity;
+}
+
+export function validateActivity(activity, findSecurityAlsoByCompany = false) {
+  if (validateCommons(activity) === undefined) return undefined;
 
   // Tresor One will search the security for PDF Documents with ISIN or WKN. For Imports of .csv File from Portfolio Performance
   // T1 can search the security also by the Company.
@@ -201,54 +232,58 @@ export function validateActivity(activity, findSecurityAlsoByCompany = false) {
     ((findSecurityAlsoByCompany && activity.company === undefined) ||
       !findSecurityAlsoByCompany) &&
     activity.isin === undefined &&
-    activity.wkn === undefined
+    activity.wkn === undefined &&
+    activity.holding === undefined
   ) {
-    console.error(
-      'The activity for ' +
-        activity.broker +
-        ' must have at least a' +
-        (findSecurityAlsoByCompany ? ' company,' : 'n') +
-        ' ISIN or WKN.',
-      activity
+    throw new ParqetActivityValidationError(
+      `Invalid fields. Activity must contain one of 'isin', 'wkn', 'company' or 'holding'.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  if (activity.isin !== undefined && !isinRegex.test(activity.isin)) {
-    console.error(
-      'The activity ISIN for ' +
-        activity.broker +
-        " can't be valid with an invalid scheme.",
-      activity
+  if (!!activity.isin && !isinRegex.test(activity.isin)) {
+    throw new ParqetActivityValidationError(
+      `Invalid 'isin'. Invalid scheme for 'isin' field value.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  if (activity.wkn !== undefined && !/^([A-Z0-9]{6})$/.test(activity.wkn)) {
-    console.error(
-      'The activity WKN for ' +
-        activity.broker +
-        " can't be valid with an invalid scheme.",
-      activity
+  if (!!activity.wkn && !/^([A-Z0-9]{6})$/.test(activity.wkn)) {
+    throw new ParqetActivityValidationError(
+      `Invalid 'wkn'. Invalid scheme for 'wkn' field value.`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  if (
-    !['Buy', 'Sell', 'Dividend', 'TransferIn', 'TransferOut'].includes(
-      activity.type
-    )
-  ) {
-    console.error(
-      'The activity type for ' +
-        activity.broker +
-        " can't be valid with an unknown type.",
-      activity
+  // Object.keys(ActivityType).map((t) => ActivityType[t]) <-- would use this for list, but it includes more types
+  // than the list below
+  const at = ['Buy', 'Sell', 'Dividend', 'TransferIn', 'TransferOut'];
+  if (!at.includes(activity.type)) {
+    throw new ParqetActivityValidationError(
+      `Invalid 'type'. Activity 'type' field value must be one of [${at.join(
+        ', '
+      )}].`,
+      activity,
+      6
     );
-    return undefined;
   }
 
-  return activity;
+  if (!!activity.currency && !/^([A-Z]{3})$/.test(activity.currency)) {
+    throw new ParqetActivityValidationError(
+      `Invalid 'currency'. Invalid scheme for 'currency' field value.`,
+      activity,
+      6
+    );
+  }
+
+  return /** @type {Importer.Activity} */ (activity);
+}
+
+export function validateCashActivity(activity) {
+  return validateCommons(activity);
 }
 
 // Finds next regex match starting at the given offset
@@ -306,14 +341,11 @@ export const findFirstSearchtermIndexInArray = (
   searchterms,
   offset = 0
 ) => {
-  Array.min = function (array) {
-    return Math.min.apply(Math, array);
-  };
-
+  /** @type{number[]} */
   let idxArray = [];
   searchterms.forEach(type => {
     idxArray.push(array.slice(offset).indexOf(type));
   });
-  const nextIdx = Array.min(idxArray.filter(lineNumber => lineNumber >= 0));
+  const nextIdx = Math.min(...idxArray.filter(lineNumber => lineNumber >= 0));
   return nextIdx !== Infinity ? nextIdx + offset : -1;
 };

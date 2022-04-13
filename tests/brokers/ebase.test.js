@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as ebase from '@/brokers/ebase';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   transactionLogSamples,
@@ -11,22 +11,7 @@ import {
 describe('Broker: ebase', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can parse one page containing sell orders with ebase', () => {
-      allSamples.forEach(pages => {
-        expect(ebase.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as ebase', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(ebase);
-      });
-    });
-  });
+  validateAllSamples(ebase, allSamples, 'ebase');
 
   describe('Validate buys', () => {
     test('Can parse multiple planned buys from a single page pdf', () => {
@@ -44,6 +29,7 @@ describe('Broker: ebase', () => {
         amount: 17.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[10]).toEqual({
         broker: 'ebase',
@@ -57,12 +43,13 @@ describe('Broker: ebase', () => {
         amount: 15.3,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
 
     test('Can parse multiple planned buys from a multi page pdf', () => {
       const activities = ebase.parsePages(buySamples[1]).activities;
-      expect(activities.length).toEqual(113);
+      expect(activities.length).toEqual(116);
       expect(activities[0]).toEqual({
         broker: 'ebase',
         type: 'Buy',
@@ -75,8 +62,23 @@ describe('Broker: ebase', () => {
         amount: 17,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[66]).toEqual({
+        broker: 'ebase',
+        type: 'Dividend',
+        date: '2020-01-17',
+        datetime: '2020-01-17T' + activities[66].datetime.substring(11),
+        isin: 'DE000A1W9A28',
+        company: 'ProfitlichSchmidlin Fonds UI R',
+        shares: 0.009734,
+        price: 125.34,
+        amount: 1.22,
+        tax: 0.0,
+        fee: 0.0,
+        currency: 'EUR',
+      });
+      expect(activities[67]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-01-17',
@@ -88,6 +90,7 @@ describe('Broker: ebase', () => {
         amount: 1.22,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
 
@@ -106,6 +109,7 @@ describe('Broker: ebase', () => {
         amount: 500.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[4]).toEqual({
         broker: 'ebase',
@@ -119,6 +123,7 @@ describe('Broker: ebase', () => {
         amount: 50,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
 
@@ -138,6 +143,7 @@ describe('Broker: ebase', () => {
         amount: 40.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
         foreignCurrency: 'USD',
         fxRate: 1.1622,
       });
@@ -153,6 +159,7 @@ describe('Broker: ebase', () => {
         amount: 50,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
         foreignCurrency: 'USD',
         fxRate: 1.1035,
       });
@@ -160,7 +167,7 @@ describe('Broker: ebase', () => {
 
     test('Can parse multiple buy and reinvests from an ebase document', () => {
       const activities = ebase.parsePages(buySamples[4]).activities;
-      expect(activities.length).toEqual(12);
+      expect(activities.length).toEqual(13);
       expect(activities[0]).toEqual({
         broker: 'ebase',
         type: 'Buy',
@@ -173,8 +180,23 @@ describe('Broker: ebase', () => {
         amount: 40.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[4]).toEqual({
+        broker: 'ebase',
+        type: 'Dividend',
+        date: '2020-07-14',
+        datetime: '2020-07-14T' + activities[4].datetime.substring(11),
+        isin: 'FR0010527275',
+        company: 'LYXOR World Water (DR) UCITS ETF - Dist',
+        shares: 0.400721,
+        price: 38.83,
+        amount: 15.56,
+        tax: 0.0,
+        fee: 0.0,
+        currency: 'EUR',
+      });
+      expect(activities[5]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-07-14',
@@ -186,8 +208,9 @@ describe('Broker: ebase', () => {
         amount: 15.56,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
-      expect(activities[11]).toEqual({
+      expect(activities[12]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-01-30',
@@ -199,12 +222,13 @@ describe('Broker: ebase', () => {
         amount: 40.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
 
     test('Can parse capital accumulation benefits', () => {
       const activities = ebase.parsePages(buySamples[5]).activities;
-      expect(activities.length).toEqual(26);
+      expect(activities.length).toEqual(31);
     });
   });
 
@@ -224,6 +248,7 @@ describe('Broker: ebase', () => {
         amount: 45.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[1]).toEqual({
         broker: 'ebase',
@@ -237,6 +262,7 @@ describe('Broker: ebase', () => {
         amount: 45.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
 
@@ -255,6 +281,7 @@ describe('Broker: ebase', () => {
         amount: 373.54,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[10]).toEqual({
         broker: 'ebase',
@@ -268,6 +295,7 @@ describe('Broker: ebase', () => {
         amount: 315.42,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
   });
@@ -275,7 +303,7 @@ describe('Broker: ebase', () => {
   describe('Validate transaction logs being parsed', () => {
     test('Can parse an ebase multi-page pdf with mixed transactions', () => {
       const activities = ebase.parsePages(transactionLogSamples[0]).activities;
-      expect(activities.length).toEqual(327);
+      expect(activities.length).toEqual(333);
       expect(activities[11]).toEqual({
         broker: 'ebase',
         type: 'Buy',
@@ -288,6 +316,7 @@ describe('Broker: ebase', () => {
         amount: 17.0,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
 
@@ -308,6 +337,7 @@ describe('Broker: ebase', () => {
         fee: 0.0,
         fxRate: 1.2362,
         foreignCurrency: 'USD',
+        currency: 'EUR',
       });
 
       expect(activities[11]).toEqual({
@@ -324,17 +354,15 @@ describe('Broker: ebase', () => {
         fee: 0.0,
         fxRate: 1.1128,
         foreignCurrency: 'USD',
+        currency: 'EUR',
       });
     });
 
     test('Can parse an ebase single-page pdf with mixed transactions', () => {
-      const result = ebase.parsePages(transactionLogSamples[2]);
-      expect(result.activities === undefined && result.status === 6);
-
+      const activities = ebase.parsePages(transactionLogSamples[2]).activities;
       //There is one activity in this list of activites that cant be parsed yet
       // If it has been resolved the following tests can be run
-      /*
-      expect(activities.length).toEqual(4);
+      expect(activities.length).toEqual(6);
       expect(activities[0]).toEqual({
         broker: 'ebase',
         type: 'Buy',
@@ -349,6 +377,7 @@ describe('Broker: ebase', () => {
         foreignCurrency: 'USD',
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
       expect(activities[1]).toEqual({
         broker: 'ebase',
@@ -363,9 +392,24 @@ describe('Broker: ebase', () => {
         fxRate: 1.1688,
         foreignCurrency: 'USD',
         tax: 0.0,
+        currency: 'EUR',
         fee: 0.0,
       });
       expect(activities[2]).toEqual({
+        broker: 'ebase',
+        type: 'Dividend',
+        date: '2020-10-09',
+        datetime: '2020-10-09T' + activities[2].datetime.substring(11),
+        isin: 'IE00BKX55T58',
+        company: 'Vanguard FTSE Developed World UCITS ETF',
+        shares: 0.039737,
+        price: 71.47,
+        amount: 2.84,
+        tax: 0.0,
+        fee: 0.0,
+        currency: 'USD',
+      });
+      expect(activities[3]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-10-09',
@@ -377,8 +421,9 @@ describe('Broker: ebase', () => {
         amount: 2.84,
         tax: 0.0,
         fee: 0.0,
+        currency: 'USD',
       });
-      expect(activities[2]).toEqual({
+      expect(activities[4]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-09-14',
@@ -391,9 +436,10 @@ describe('Broker: ebase', () => {
         fxRate: 1.1869,
         foreignCurrency: 'USD',
         tax: 0.0,
+        currency: 'EUR',
         fee: 0.0,
       });
-      expect(activities[3]).toEqual({
+      expect(activities[5]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-09-10',
@@ -407,36 +453,48 @@ describe('Broker: ebase', () => {
         foreignCurrency: 'USD',
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
-    */
     });
 
     test('Can parse an ebase fond redeployment transactions', () => {
       const result = ebase.parsePages(transactionLogSamples[3]);
-      expect(result.activities === undefined && result.status === 6);
-      /*
-      expect(activities.length).toEqual(6);
+
+      expect(result.activities.length).toEqual(8);
       //There is one activity that cant be parsed yet in this testfile
-      expect(activities[4]).toEqual({
+      expect(result.activities[3]).toEqual({
         broker: 'ebase',
-        type: 'Sell',
-        date: '2020-09-10',
-        datetime: '2020-09-10T' + activities[4].datetime.substring(11),
-        isin: 'LU0392494562',
-        company: 'ComStage MSCI World TRN UCITS ETF I',
-        shares: 0.545977,
-        price: 56.84245941626714,
-        amount: 30.98,
-        fxRate: 1.1889,
-        foreignCurrency: 'USD',
+        type: 'Dividend',
+        date: '2020-10-09',
+        datetime: '2020-10-09T' + result.activities[4].datetime.substring(11),
+        isin: 'IE00BKX55T58',
+        company: 'Vanguard FTSE Developed World UCITS ETF',
+        shares: 0.039737,
+        price: 71.47,
+        amount: 2.84,
+        currency: 'USD',
         tax: 0.0,
         fee: 0.0,
       });
-      expect(activities[5]).toEqual({
+      expect(result.activities[4]).toEqual({
+        broker: 'ebase',
+        type: 'Buy',
+        date: '2020-10-09',
+        datetime: '2020-10-09T' + result.activities[4].datetime.substring(11),
+        isin: 'IE00BKX55T58',
+        company: 'Vanguard FTSE Developed World UCITS ETF',
+        shares: 0.039737,
+        price: 71.47,
+        amount: 2.84,
+        currency: 'USD',
+        tax: 0.0,
+        fee: 0.0,
+      });
+      expect(result.activities[7]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-09-10',
-        datetime: '2020-09-10T' + activities[5].datetime.substring(11),
+        datetime: '2020-09-10T' + result.activities[5].datetime.substring(11),
         isin: 'IE00BKX55T58',
         company: 'Vanguard FTSE Developed World UCITS ETF',
         shares: 0.515934,
@@ -446,21 +504,19 @@ describe('Broker: ebase', () => {
         foreignCurrency: 'USD',
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
-      */
     });
 
     test('Can parse an ebase buy recalculation transactions', () => {
-      const result = ebase.parsePages(transactionLogSamples[4]);
-      expect(result.activities === undefined && result.status === 6);
+      const activities = ebase.parsePages(transactionLogSamples[4]).activities;
       //This testcase is still an issue without any soltion atm.
-      /*
-      expect(activities.length).toEqual(45);
+      expect(activities.length).toEqual(47);
       expect(activities[6]).toEqual({
         broker: 'ebase',
-        type: 'Buy',
+        type: 'Dividend',
         date: '2020-11-27',
-        datetime: '2020-11-27T' + activities[38].datetime.substring(11),
+        datetime: '2020-11-27T' + activities[6].datetime.substring(11),
         isin: 'IE00B1XNHC34',
         company: 'iShares Global Clean Energy UCITS ETF',
         shares: 0.01473,
@@ -468,12 +524,27 @@ describe('Broker: ebase', () => {
         amount: 0.2,
         tax: 0.0,
         fee: 0.0,
+        currency: 'USD',
       });
-      expect(activities[37]).toEqual({
+      expect(activities[7]).toEqual({
+        broker: 'ebase',
+        type: 'Buy',
+        date: '2020-11-27',
+        datetime: '2020-11-27T' + activities[7].datetime.substring(11),
+        isin: 'IE00B1XNHC34',
+        company: 'iShares Global Clean Energy UCITS ETF',
+        shares: 0.01473,
+        price: 13.58,
+        amount: 0.2,
+        tax: 0.0,
+        fee: 0.0,
+        currency: 'USD',
+      });
+      expect(activities[39]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-04-06',
-        datetime: '2020-04-06T' + activities[38].datetime.substring(11),
+        datetime: '2020-04-06T' + activities[39].datetime.substring(11),
         isin: 'IE00B4L5Y983',
         company: 'iShares Core MSCI World UCITS ETF USD (Acc)',
         shares: 1.081765,
@@ -483,12 +554,13 @@ describe('Broker: ebase', () => {
         foreignCurrency: 'USD',
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
-      expect(activities[38]).toEqual({
+      expect(activities[40]).toEqual({
         broker: 'ebase',
         type: 'Buy',
         date: '2020-04-06',
-        datetime: '2020-04-06T' + activities[39].datetime.substring(11),
+        datetime: '2020-04-06T' + activities[40].datetime.substring(11),
         isin: 'IE00B48X4842',
         company: 'SPDR MSCI Emerging Markets Small Cap UCITS ETF',
         shares: 0.963138,
@@ -498,8 +570,8 @@ describe('Broker: ebase', () => {
         foreignCurrency: 'USD',
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
-      */
     });
 
     test('Can parse 2021_transaction_log_1 containing recalulation of redeployments', () => {
@@ -518,6 +590,7 @@ describe('Broker: ebase', () => {
         amount: 60,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
 
       expect(result.activities[43]).toEqual({
@@ -532,6 +605,7 @@ describe('Broker: ebase', () => {
         amount: 60,
         tax: 0.0,
         fee: 0.0,
+        currency: 'EUR',
       });
     });
   });

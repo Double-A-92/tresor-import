@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as _1822direkt from '../../src/brokers/1822direkt';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -10,22 +10,7 @@ import {
 describe('Broker: 1822direkt', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with 1822direkt', () => {
-      allSamples.forEach(pages => {
-        expect(_1822direkt.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as 1822direkt', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(_1822direkt);
-      });
-    });
-  });
+  validateAllSamples(_1822direkt, allSamples, '1882direkt');
 
   describe('Validate buys', () => {
     test('Can the direct market order parsed from the document', () => {
@@ -143,6 +128,24 @@ describe('Broker: 1822direkt', () => {
         amount: 25.63,
         fee: 0,
         tax: 0,
+      });
+    });
+    test('Can the stock dividend be parsed from the document', () => {
+      const activities = _1822direkt.parsePages(dividendSamples[1]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: '1822direkt',
+        type: 'Dividend',
+        date: '2021-02-11',
+        datetime: '2021-02-11T' + activities[0].datetime.substring(11),
+        isin: 'US0378331005',
+        company: 'APPLE INC.',
+        shares: 200,
+        price: 0.1691,
+        amount: 33.82,
+        fee: 0,
+        tax: 5.07,
       });
     });
   });

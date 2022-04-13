@@ -1,0 +1,15 @@
+[
+  {
+    "date": "2021-09-09",
+    "price": 100.0,
+    "shares": 11,
+    "tax": 0,
+    "fee": 7.9,
+    "type": "Buy",
+    "broker": "flatex",
+    "holding": "apple",
+    "isin": "US0378331005",
+    "currency": "EUR",
+    "amount": 1100
+  }
+]

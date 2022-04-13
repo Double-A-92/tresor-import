@@ -1,0 +1,30 @@
+[
+  {
+    "datetime": "2021-09-19T16:00:00.000",
+    "date": "2021-09-19",
+    "time": "16:00:00",
+    "price": 5.55,
+    "shares": 555,
+    "tax": 0,
+    "fee": 0,
+    "type": "Buy",
+    "broker": "comdirect",
+    "isin": "IE00BF4RFH31",
+    "currency": "EUR",
+    "amount": 3080.25
+  },
+  {
+    "datetime": "2021-11-19T16:00:00.000",
+    "date": "2021-11-19",
+    "time": "16:00:00",
+    "price": 5.55,
+    "shares": 555,
+    "tax": 0,
+    "fee": 0,
+    "type": "Buy",
+    "broker": "comdirect",
+    "isin": "IE00BF4RFH31",
+    "currency": "EUR",
+    "amount": 3080.25
+  }
+]

@@ -5,10 +5,6 @@ import {
   createActivityDateTime,
 } from '@/helper';
 
-function ForeignOnlyReinvest(message) {
-  this.message = message;
-}
-
 const parseShare = shareString => {
   try {
     return +Big(parseGermanNum(shareString)).abs();
@@ -43,7 +39,6 @@ const isBuy = txString => {
   return (
     txString === 'Ansparplan' ||
     txString === 'Kauf' ||
-    txString === 'Wiederanlage Fondsertrag' ||
     txString.includes('Fondsumschichtung (Zugang)') ||
     txString === 'Neuabrechnung Kauf'
   );
@@ -60,6 +55,14 @@ const isSell = txString => {
   );
 };
 
+const isReinvestment = line => {
+  if (!line) {
+    return;
+  }
+
+  return line === 'Wiederanlage Fondsertrag';
+};
+
 function parseBaseAction(pdfArray, pdfOffset, actionType) {
   let foreignCurrencyOffset = 0;
   // In this case there is a foreign currency involved and the amount will be
@@ -68,19 +71,8 @@ function parseBaseAction(pdfArray, pdfOffset, actionType) {
     pdfArray[pdfOffset + 6],
     undefined
   );
-  if (
-    actionType === 'Buy' &&
-    pdfArray[pdfOffset] === 'Wiederanlage Fondsertrag'
-  ) {
-    if (
-      !pdfArray[pdfOffset + 5].endsWith('EUR') &&
-      !pdfArray[pdfOffset + 7].endsWith('EUR')
-    ) {
-      throw new ForeignOnlyReinvest(
-        'Found a reinvest containing only a non-EUR currency, can not be parsed yet.'
-      );
-    }
-  }
+
+  /** @type {Partial<Importer.Activity>} */
   const activity = {
     broker: 'ebase',
     type: actionType,
@@ -91,17 +83,30 @@ function parseBaseAction(pdfArray, pdfOffset, actionType) {
     shares: parseShare(pdfArray[pdfOffset + 4]),
     tax: 0,
     fee: 0,
+    currency: 'EUR',
   };
+
+  if (
+    pdfArray[pdfOffset] === 'Wiederanlage Fondsertrag' &&
+    !pdfArray[pdfOffset + 5].endsWith(' EUR') &&
+    !pdfArray[pdfOffset + 7].endsWith(' EUR')
+  ) {
+    activity.currency = pdfArray[pdfOffset + 7].split(' ')[1];
+  }
+
   activity.price = parseNumberBeforeSpace(pdfArray[pdfOffset + 5]);
+
   if (pdfArray[pdfOffset + 8].includes('/')) {
     foreignCurrencyOffset = 2;
     activity.fxRate = parseGermanNum(pdfArray[pdfOffset + 7]);
     activity.foreignCurrency = pdfArray[pdfOffset + 8].split('/')[1];
     activity.price = +Big(activity.price).div(activity.fxRate);
   }
+
   activity.amount = parseNumberBeforeSpace(
     pdfArray[pdfOffset + 7 + foreignCurrencyOffset]
   );
+
   return validateActivity(activity);
 }
 
@@ -113,21 +118,11 @@ const parseTransactionLog = pdfPages => {
 
     while (i <= pdfPage.length) {
       if (isBuy(pdfPage[i])) {
-        try {
-          const action = parseBaseAction(pdfPage, i, 'Buy');
-          if (action === undefined) {
-            return undefined;
-          }
+        const action = parseBaseAction(pdfPage, i, 'Buy');
+        if (action !== undefined) {
           actions.push(action);
-        } catch (error) {
-          // In this case there is a reinvest in a foreing currency where the payout was also in a foreign currency
-          // No base currency values are given yet so T1 can't handle this as of now. Base Currency is assumed to be
-          // EUR which is hardcoded atm. Only workaround I could think of (SirGibihm)
-          if (error instanceof ForeignOnlyReinvest) {
-            console.error(error.message);
-          }
-          return undefined;
         }
+
         // Any buy transaction entry occupies at least 7 array entries.
         i += 6;
       } else if (pdfPage[i] === 'Fondsertrag (Ausschüttung)') {
@@ -135,15 +130,27 @@ const parseTransactionLog = pdfPages => {
         i += 3;
       } else if (isSell(pdfPage[i])) {
         const action = parseBaseAction(pdfPage, i, 'Sell');
-        if (action === undefined) {
-          return undefined;
-        } // An Sell operations occupy 9 array entries.
-        actions.push(action);
+        if (action !== undefined) {
+          actions.push(action);
+        }
+
+        // An Sell operations occupy 9 array entries.
         i += 8;
+      } else if (isReinvestment(pdfPage[i])) {
+        const action = parseBaseAction(pdfPage, i, 'Buy');
+        if (action !== undefined) {
+          // Push first the activity as a dividend
+          actions.push({ ...action, type: 'Dividend' });
+          actions.push(action);
+        }
+
+        // Any buy transaction entry occupies at least 7 array entries.
+        i += 6;
       } else if (pdfPage[i] === 'Vorabpauschale') {
         // This was always blank in the example files I had -> So no parsing could be done.
         i += 3;
       }
+
       i++;
     }
   }
@@ -190,3 +197,5 @@ export const parsePages = pdfPages => {
     };
   }
 };
+
+export const parsingIsTextBased = () => true;

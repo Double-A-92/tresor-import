@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as commerzbank from '../../src/brokers/commerzbank';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -12,21 +12,7 @@ import {
 describe('Broker: commerzbank', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can pdf file be parsed with commerzbank', () => {
-      allSamples.forEach(pages => {
-        expect(commerzbank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from a single page as commerzbank', () => {
-      allSamples.forEach(sample => {
-        const implementations = findImplementation(sample, 'pdf');
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(commerzbank);
-      });
-    });
-  });
+  validateAllSamples(commerzbank, allSamples, 'commerzbank');
 
   describe('Validate buys', () => {
     test('Can a buy order for A1T8FV_1 be parsed', () => {

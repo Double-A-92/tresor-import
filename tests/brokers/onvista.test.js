@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as onvista from '../../src/brokers/onvista';
+import { validateAllSamples } from '../setup/brokers';
 import Big from 'big.js';
 import {
   buySamples,
@@ -17,22 +17,7 @@ console.error = jest.fn();
 describe('Broker: onvista', () => {
   let multiPageResult;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with onvista', () => {
-      allSamples.forEach(pages => {
-        expect(onvista.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as onvista', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(onvista);
-      });
-    });
-  });
+  validateAllSamples(onvista, allSamples, 'onvista');
 
   describe('Multiple Pages', () => {
     test('should parse a PDF with multiple bills', () => {
@@ -134,6 +119,24 @@ describe('Broker: onvista', () => {
         price: 84.16,
         amount: 2272.32,
         fee: 9.7,
+        tax: 0,
+      });
+    });
+
+    test('Can parse document: 2021_iShsIII-CoreMSCI', () => {
+      const activities = onvista.parsePages(buySamples[4]).activities;
+
+      expect(activities[0]).toEqual({
+        broker: 'onvista',
+        type: 'Buy',
+        date: '2021-06-15',
+        datetime: '2021-06-15T07:04:00.000Z',
+        isin: 'IE00B4L5Y983',
+        company: 'iShsIII-CoreMSCI WorldU.ETFRegistered ShsUSD(Acc)o.N.',
+        shares: 2.9014,
+        price: 68.586,
+        amount: 199,
+        fee: 1,
         tax: 0,
       });
     });
@@ -436,6 +439,46 @@ describe('Broker: onvista', () => {
           fxRate: 1.1373,
         },
       ]);
+    });
+
+    test('Can parse document: 2021_iShare-NASDAQ-CoreMSCI', () => {
+      const activities = onvista.parsePages(dividendsSamples[5]).activities;
+
+      expect(activities[0]).toEqual({
+        broker: 'onvista',
+        type: 'Dividend',
+        date: '2021-06-15',
+        datetime: '2021-06-15T' + activities[0].datetime.substring(11),
+        isin: 'DE000A0F5UF5',
+        company: 'iShare.NASDAQ-100UCITS ETFDE Inhaber-Anteile',
+        shares: 5,
+        price: 0.124,
+        amount: 0.62,
+        fee: 0,
+        tax: 0.12,
+        foreignCurrency: 'USD',
+        fxRate: 1.2175,
+      });
+    });
+
+    test('Can parse document: 2021_Nintendo', () => {
+      const activities = onvista.parsePages(dividendsSamples[6]).activities;
+
+      expect(activities[0]).toEqual({
+        broker: 'onvista',
+        type: 'Dividend',
+        date: '2021-06-30',
+        datetime: '2021-06-30T' + activities[0].datetime.substring(11),
+        isin: 'JP3756600007',
+        company: 'NintendoCo. Ltd.Registered Shareso.N.',
+        shares: 7,
+        price: 10.602857142857143,
+        amount: 74.22,
+        fee: 0,
+        tax: 11.17,
+        foreignCurrency: 'JPY',
+        fxRate: 132.58,
+      });
     });
   });
 

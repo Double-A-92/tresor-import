@@ -1,5 +1,5 @@
-import { findImplementation } from '../../src';
 import * as smartbroker from '../../src/brokers/smartbroker';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -12,21 +12,7 @@ import {
 describe('Smartbroker broker test', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with smartbroker', () => {
-      allSamples.forEach(pages => {
-        expect(smartbroker.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as smartbroker', () => {
-      allSamples.forEach(sample => {
-        const implementations = findImplementation(sample, 'pdf');
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(smartbroker);
-      });
-    });
-  });
+  validateAllSamples(smartbroker, allSamples, 'smartbroker');
 
   describe('Buy', () => {
     test('should map pdf data of sample 1 correctly', () => {
@@ -317,6 +303,31 @@ describe('Smartbroker broker test', () => {
             tax: 0.5753739930955121,
             fxRate: 1.2166,
             foreignCurrency: 'USD',
+          },
+        ],
+      });
+    });
+
+    test('Can parse document: 2022_GB0002875804', () => {
+      const result = smartbroker.parsePages(dividendSamples[8]);
+
+      expect(result).toEqual({
+        status: 0,
+        activities: [
+          {
+            broker: 'smartbroker',
+            type: 'Dividend',
+            date: '2022-02-09',
+            datetime: '2022-02-09' + result.activities[0].datetime.substr(10),
+            isin: 'GB0002875804',
+            company: 'British American Tobacco PLC Registered Shares LS -,25',
+            shares: 170,
+            price: 0.6365064182047921,
+            amount: 108.20609109481465,
+            fee: 0,
+            tax: 0,
+            fxRate: 0.84681,
+            foreignCurrency: 'GBP',
           },
         ],
       });

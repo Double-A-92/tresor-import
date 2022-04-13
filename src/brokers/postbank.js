@@ -80,7 +80,9 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parseData = textArr => {
-  let type, date, isin, company, shares, price, amount, fee, tax;
+  let date, isin, company, shares, price, amount, fee, tax;
+  /** @type {Importer.ActivityTypeUnion} */
+  let type;
 
   if (isBuy(textArr)) {
     type = 'Buy';
@@ -140,3 +142,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

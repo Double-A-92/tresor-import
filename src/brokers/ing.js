@@ -15,22 +15,67 @@ const getValueByPreviousElement = (textArr, prev, range) => {
 };
 
 const activityType = content => {
+  const stockOrderLineNumber = content.indexOf('Wertpapierabrechnung');
+  if (stockOrderLineNumber >= 0) {
+    if (content[stockOrderLineNumber + 1].startsWith('Kauf')) {
+      return 'Buy';
+    } else if (content[stockOrderLineNumber + 1].startsWith('Verkauf')) {
+      return 'Sell';
+    }
+  }
+
+  if (
+    content.indexOf('Dividendengutschrift') >= 0 ||
+    content.indexOf('Ertragsgutschrift') >= 0 ||
+    content.indexOf('Zinsgutschrift') >= 0
+  ) {
+    return 'Dividend';
+  }
+
+  if (content.indexOf('Rückzahlung') >= 0) {
+    return 'Payback';
+  }
+
+  if (
+    content.includes('Depotbewertung') &&
+    content.indexOf('Jahresdepotauszug') == -1
+  ) {
+    return 'DepotStatement';
+  }
+
+  if (
+    content.indexOf('Depotauszug') >= 0 ||
+    content.indexOf('Jahresdepotauszug') >= 0
+  ) {
+    return 'PostboxDepotStatement';
+  }
+
   switch (content[0]) {
     case 'Wertpapierabrechnung':
       if (content[1].startsWith('Kauf')) {
         return 'Buy';
-      } else if (content[1] === 'Verkauf') {
+      } else if (content[1].startsWith('Verkauf')) {
         return 'Sell';
       }
       break;
     case 'Dividendengutschrift':
     case 'Ertragsgutschrift':
+    case 'Zinsgutschrift':
       return 'Dividend';
     case 'Rückzahlung':
       return 'Payback';
   }
-  if (content.includes('Depotbewertung')) {
+  if (
+    content.includes('Depotbewertung') &&
+    !content[0].startsWith('Jahresdepotauszug')
+  ) {
     return 'DepotStatement';
+  }
+  if (
+    content[0].startsWith('Depotauszug') ||
+    content[0].startsWith('Jahresdepotauszug')
+  ) {
+    return 'PostboxDepotStatement';
   }
 };
 
@@ -159,7 +204,7 @@ const findAmount = (textArr, type, baseCurrency, fxRate) => {
   }
 };
 
-const findFee = content => {
+const findFee = (content, fxRate) => {
   let totalFee = Big(0);
   const provisionIdx = content.indexOf('Provision');
   if (provisionIdx >= 0 && parseGermanNum(content[provisionIdx + 2])) {
@@ -193,6 +238,13 @@ const findFee = content => {
     );
   }
 
+  const expensesLineNumber = content.indexOf('Fremde Spesen');
+  if (expensesLineNumber >= 0) {
+    totalFee = totalFee
+      .plus(parseGermanNum(content[expensesLineNumber + 2]))
+      .div(fxRate);
+  }
+
   return +totalFee;
 };
 
@@ -222,16 +274,15 @@ const findTaxes = content => {
     if (
       !line.includes('steuer ') &&
       !line.includes('zuschlag ') &&
-      !line.includes('st anteilig')
+      !line.includes('st anteilig') &&
+      !line.includes('transaktionssteuer')
     ) {
       continue;
     }
 
     // Normaly the tax amount is in the line after the tax title
     let offset = 2;
-    if (line.endsWith('%')) {
-      offset = 2;
-    } else if (!line.endsWith('%') && !content[lineNumber + 2].endsWith('%')) {
+    if (!line.endsWith('%') && !content[lineNumber + 2].endsWith('%')) {
       // but sometimes the line after contains only a %
       // Kapitalertragsteuer 25,00  // <- variable line
       // %
@@ -246,6 +297,15 @@ const findTaxes = content => {
       // EUR
       // 74,29                      // <- tax amount
       offset = 4;
+    } else if (line.endsWith('%') && content[lineNumber + 1].endsWith('%')) {
+      // but sometimes the line after contains only a % and the line after this the percentage
+      // KapSt anteilig 50,00 %     // <- variable line
+      // 25,00%
+      // EUR
+      // 74,29                      // <- tax amount
+      offset = 3;
+    } else if (line.endsWith('%')) {
+      offset = 2;
     }
 
     if (!content[lineNumber + offset].includes(',')) {
@@ -282,6 +342,7 @@ const findForeignInformation = textArr => {
 };
 
 const parseBuySellDividend = (content, type) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'ing',
     type,
@@ -311,23 +372,13 @@ const parseBuySellDividend = (content, type) => {
     activity.fxRate = fxRate;
   }
 
-  switch (activity.type) {
-    case 'Buy':
-      activity.fee = findFee(content);
-      break;
-    case 'Sell':
-      activity.fee = findFee(content);
-      activity.tax = findTaxes(content);
-      break;
-    case 'Dividend':
-      activity.tax = findTaxes(content);
-      break;
-    case 'Payback':
-      activity.type = 'Sell';
-      activity.fee = findFee(content);
-      activity.tax = findTaxes(content);
-      break;
+  if (activity.type === 'Payback') {
+    activity.type = 'Sell';
   }
+
+  activity.fee = findFee(content, fxRate);
+  activity.tax = findTaxes(content);
+
   return validateActivity(activity);
 };
 
@@ -346,6 +397,7 @@ const parseDepotStatement = content => {
     content[dateIdx].split(/\s+/)[1]
   );
   while (idx >= 0) {
+    /** @type {Importer.Activity} */
     let activity = {
       broker: 'ing',
       type: 'TransferIn',
@@ -355,6 +407,50 @@ const parseDepotStatement = content => {
       datetime,
       shares: parseGermanNum(content[idx - 1]),
       amount: parseGermanNum(content[idx + 4]),
+      tax: 0,
+      fee: 0,
+    };
+    activity.price = +Big(activity.amount).div(activity.shares);
+    activity = validateActivity(activity);
+    if (activity === undefined) {
+      return undefined;
+    }
+    activities.push(activity);
+    idx = content.indexOf('Stück', idx + 1);
+  }
+  return activities;
+};
+
+const parsePostboxDepotStatement = content => {
+  let idx = content.indexOf('Stück');
+  let activities = [];
+  let tmpdate;
+
+  if (!content[0].startsWith('Jahresdepotauszug')) {
+    if (content[0].split(' ')[2] == undefined) {
+      return undefined;
+    }
+    tmpdate = content[0].split(' ')[2];
+  } else {
+    tmpdate = content[11];
+  }
+  const [date, datetime] = createActivityDateTime(tmpdate, '23:59');
+
+  while (idx >= 0) {
+    let isinaddidx = 6;
+    if (content[idx + 6].startsWith('ISIN')) {
+      isinaddidx = 7; //necessary if currency is not euro
+    }
+    /** @type {Importer.Activity} */
+    let activity = {
+      broker: 'ing',
+      type: 'TransferIn',
+      isin: content[idx + isinaddidx].split(' ')[0],
+      company: content[idx + 1],
+      date,
+      datetime,
+      shares: parseGermanNum(content[idx - 1]),
+      amount: parseGermanNum(content[idx + 3]),
       tax: 0,
       fee: 0,
     };
@@ -384,6 +480,8 @@ export const parsePages = contents => {
 
   if (type === 'DepotStatement') {
     activities = parseDepotStatement(contentsFlat);
+  } else if (type === 'PostboxDepotStatement') {
+    activities = parsePostboxDepotStatement(contentsFlat);
   } else {
     // Information regarding dividends can be split across multiple pdf pages
     activities = [parseBuySellDividend(contentsFlat, type)];
@@ -400,3 +498,5 @@ export const parsePages = contents => {
     status: 3,
   };
 };
+
+export const parsingIsTextBased = () => true;

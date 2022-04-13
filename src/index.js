@@ -1,78 +1,154 @@
+import { csvLinesToJSON } from '@/helper';
 import pdfjs from 'pdfjs-dist/build/pdf';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
 import * as brokers from './brokers';
 import * as apps from './apps';
+import { isBrowser, isNode } from 'browser-or-node';
+import {
+  ParqetDocumentError,
+  ParqetActivityValidationError,
+  ParqetParserError,
+  ParqetError,
+} from '@/errors';
+
+export const acceptedFileTypes = ['pdf', 'csv'];
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
+/** @type { Importer.Implementation[] } */
 export const allImplementations = [
   ...Object.values(brokers),
   ...Object.values(apps),
 ];
 
-export const findImplementation = (pages, extension) => {
+/**
+ * @param {Importer.Page[]} pages
+ * @param {string} fileName
+ * @param {string} extension
+ * @returns {Importer.Implementation}
+ */
+export function findImplementation(pages, fileName, extension) {
   // The broker or app will be selected by the content of the first page
-  return allImplementations.filter(implementation =>
-    implementation.canParseDocument(pages, extension)
+  const implementations = allImplementations.filter(impl =>
+    impl.canParseDocument(pages, extension)
   );
-};
 
-export const parseActivitiesFromPages = (pages, extension) => {
-  let status;
-  const implementations = findImplementation(pages, extension);
+  if (implementations === undefined || !implementations.length)
+    throw new ParqetDocumentError(
+      `Invalid document. Failed to find parser implementation for document.`,
+      fileName,
+      1
+    );
 
-  try {
-    // Status 1, no broker could be found
-    if (implementations === undefined || implementations.length < 1) {
-      status = 1;
-    } else if (implementations.length === 1) {
-      if (extension === 'pdf') {
-        return filterResultActivities(implementations[0].parsePages(pages));
-      } else if (extension === 'csv') {
-        return filterResultActivities(implementations[0].parsePages(pages[0]));
-      }
-      // Invalid Filetype
-      else {
-        status = 4;
-      }
+  if (implementations.length > 1)
+    throw new ParqetDocumentError(
+      `Invalid document. Found multiple parser implementations for document.`,
+      fileName,
+      2
+    );
+
+  return implementations[0];
+}
+
+/**
+ * @param {Importer.Page[]} pages
+ * @param {string} fileName
+ * @param {string} extension
+ * @returns {Importer.Activity[]}
+ */
+export function parseActivitiesFromPages(pages, fileName, extension) {
+  if (!pages.length)
+    throw new ParqetDocumentError(
+      `Invalid document. Document is empty.`,
+      fileName,
+      1
+    );
+
+  const impl = findImplementation(pages, fileName, extension);
+
+  /** @type { Importer.ParserResult } */
+  let parsePagesResult;
+
+  if (extension === 'pdf') {
+    parsePagesResult = impl.parsePages(pages);
+  } else if (extension === 'csv') {
+    let content = pages[0];
+
+    if (!impl.parsingIsTextBased()) {
+      content = JSON.parse(csvLinesToJSON(content));
     }
-    // More than one broker found
-    else if (implementations.length > 1) {
-      status = 2;
-    }
-  } catch (error) {
-    // Critical Error occurred
-    console.error(error);
-    status = 3;
+
+    parsePagesResult = impl.parsePages(content);
   }
 
-  return {
-    activities: undefined,
-    status,
-  };
-};
+  if (!parsePagesResult.activities.length)
+    throw new ParqetActivityValidationError(
+      `Empty document. No activities found in parsable document.`,
+      {},
+      5
+    );
 
+  return parsePagesResult.activities;
+}
+
+/** @type { (file: File) => Promise<Importer.ParsedFile> } */
 export const parseFile = file => {
   return new Promise(resolve => {
     const extension = file.name.split('.').pop().toLowerCase();
+
+    if (!acceptedFileTypes.includes(extension))
+      throw new ParqetDocumentError(
+        `Invalid document. Unsupported file type '${extension}'. Extension must be one of [${acceptedFileTypes.join(
+          ','
+        )}].`,
+        file.name,
+        4
+      );
+
     const reader = new FileReader();
 
     reader.onload = async e => {
+      if (!isBrowser || isNode) {
+        resolve({
+          pages: [],
+          extension,
+        });
+      }
+
       let fileContent, pdfDocument;
+      /** @type {Importer.Page[]} */
       let pages = [];
 
       if (extension === 'pdf') {
-        fileContent = new Uint8Array(e.currentTarget.result);
+        if (typeof e.target.result === 'string') {
+          throw new ParqetParserError(
+            `Invalid file content. Expected 'pdf' file content to be of type 'ArrayBuffer' but received 'string'.`,
+            file.name,
+            3
+          );
+        }
+
+        fileContent = new Uint8Array(e.target.result);
+        /** @type {pdfjs.PDFDocumentProxy} */
         pdfDocument = await pdfjs.getDocument(fileContent).promise;
 
         const loopHelper = Array.from(Array(pdfDocument.numPages)).entries();
         for (const [pageIndex] of loopHelper) {
-          pages.push(
-            await parsePageToContent(await pdfDocument.getPage(pageIndex + 1))
+          const parsedContent = await parsePageToContent(
+            await pdfDocument.getPage(pageIndex + 1)
           );
+          pages.push(parsedContent);
         }
       } else {
-        pages.push(e.currentTarget.result.trim().split('\n'));
+        if (typeof e.target.result !== 'string') {
+          throw new ParqetParserError(
+            `Invalid file content. Expected file content to be of type 'string' for non 'pdf' file types.`,
+            file.name,
+            3
+          );
+        }
+
+        pages.push(e.target.result.trim().split('\n'));
       }
 
       resolve({
@@ -91,50 +167,42 @@ export const parseFile = file => {
 
 export default file => {
   return new Promise(resolve => {
-    try {
-      parseFile(file).then(parsedFile => {
-        const result = parseActivitiesFromPages(
+    parseFile(file)
+      .then(parsedFile => {
+        const activities = parseActivitiesFromPages(
           parsedFile.pages,
+          file.name,
           parsedFile.extension
         );
 
         resolve({
           file: file.name,
-          activities: result.activities,
-          status: result.status,
-          successful: result.activities !== undefined && result.status === 0,
+          activities,
+          status: 0,
+          successful: !!activities.length,
+        });
+      })
+      .catch(err => {
+        console.error(err); // optional to output the error on the console
+        let status = 3;
+        if (err instanceof ParqetError) status = err.data.status;
+        // This should be a 'reject' --> would break Parqet if not dealt with in calling function
+        // currently we are not handing over the arrow
+        resolve({
+          file: file.name,
+          activities: [],
+          status,
+          successful: false,
         });
       });
-    } catch (error) {
-      console.error(error);
-    }
   });
 };
 
-const filterResultActivities = result => {
-  if (result.activities !== undefined) {
-    if (
-      result.activities.filter(activity => activity === undefined).length > 0
-    ) {
-      // One or more activities are invalid and can't be validated with the validateActivity function. We should ignore this document and return the specific status code.
-      result.activities = undefined;
-      result.status = 6;
-
-      return result;
-    }
-
-    // If no activity exists, set the status code to 5
-    const numberOfActivities = result.activities.length;
-    result.activities =
-      numberOfActivities === 0 ? undefined : result.activities;
-    result.status =
-      numberOfActivities === 0 && result.status == 0 ? 5 : result.status;
-  }
-
-  return result;
-};
-
-const parsePageToContent = async page => {
+/**
+ * @param {pdfjs.PDFPageProxy} page
+ * @returns {Promise<string[]>}
+ */
+async function parsePageToContent(page) {
   const parsedContent = [];
   const content = await page.getTextContent();
 
@@ -143,4 +211,4 @@ const parsePageToContent = async page => {
   }
 
   return parsedContent.filter(item => item.length > 0);
-};
+}

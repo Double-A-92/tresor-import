@@ -1,0 +1,4 @@
+datetime;date;time;price;shares;tax;fee;type;broker;holding;isin;wkn;exchange
+2021-09-09T00:00:00.000;2021-09-09;;100.0;11;0;7.9;Buy;flatex;apple;US0378331005;865985;gettext
+2020-08-28T22:00:00.000Z;2020-08-29;;0;;0;;split;;US0378331005;865985;;;;606b52c9ef0b5e00336092e4;Apple;;gettex;
+2022-02-28T22:30:00.000Z;2022-02-28;;0;;0;;reversesplit;;US74584P3010;A3DWEE;;;;hld_62265f40da3866c429316dff;Pulmatrix Aktie;;frankfurt;

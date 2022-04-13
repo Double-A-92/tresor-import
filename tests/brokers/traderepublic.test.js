@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as traderepublic from '../../src/brokers/traderepublic';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -13,22 +13,7 @@ import {
 describe('Broker: Trade Republic', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with Trade Republic', () => {
-      allSamples.forEach(pages => {
-        expect(traderepublic.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Trade Republic', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(traderepublic);
-      });
-    });
-  });
+  validateAllSamples(traderepublic, allSamples, 'traderepublic');
 
   describe('Validate buys', () => {
     test('Map a limit order correctly', () => {
@@ -200,6 +185,25 @@ describe('Broker: Trade Republic', () => {
         price: 20.1,
         shares: 50,
         tax: -6.93,
+        type: 'Sell',
+      });
+    });
+
+    test('Parse the tax amount right with the changed label for gain tax: 2021_IE00B53SZB19', () => {
+      const activities = traderepublic.parsePages(sellSamples[3]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        amount: 523.69,
+        broker: 'traderepublic',
+        company: 'iShsVII-NASDAQ 100 UCITS ETF',
+        date: '2021-06-01',
+        datetime: '2021-06-01T14:18:00.000Z',
+        fee: 0,
+        isin: 'IE00B53SZB19',
+        price: 628.6040091225543,
+        shares: 0.8331,
+        tax: 2.57,
         type: 'Sell',
       });
     });

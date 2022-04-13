@@ -1,5 +1,5 @@
-import { findImplementation } from '@/index';
 import * as cortalconsors from '../../src/brokers/cortalconsors';
+import { validateAllSamples } from '../setup/brokers';
 import {
   allSamples,
   buySamples,
@@ -10,22 +10,7 @@ import {
 describe('Broker: Cortal Consors', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can one page parsed with cortal consors', () => {
-      allSamples.forEach(pages => {
-        expect(cortalconsors.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a broker from one page as cortal consors', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(cortalconsors);
-      });
-    });
-  });
+  validateAllSamples(cortalconsors, allSamples, 'cortalconsors');
 
   describe('Buy', () => {
     test('Can parse 2005 Acatis buy', () => {

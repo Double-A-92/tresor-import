@@ -1,29 +1,11 @@
-import { findImplementation } from '@/index';
 import * as postbank from '../../src/brokers/postbank';
-import { dividendSamples, buySamples } from './__mocks__/postbank';
+import { validateAllSamples } from '../setup/brokers';
+import { dividendSamples, buySamples, allSamples } from './__mocks__/postbank';
 
 console.error = jest.fn();
 
 describe('Broker: Postbank', () => {
-  // Currently there are no more samples than dividends
-  const allSamples = dividendSamples;
-
-  describe('Check all documents', () => {
-    test('Can the document be parsed with postbank', () => {
-      allSamples.forEach(pages => {
-        expect(postbank.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as postbank', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(postbank);
-      });
-    });
-  });
+  validateAllSamples(postbank, allSamples, 'postbank');
 
   describe('Buy', () => {
     test('should map pdf data of buy_savings_plan_vanguard_ftse_all_world_1.json correctly', () => {

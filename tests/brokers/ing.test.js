@@ -1,5 +1,6 @@
-import { findImplementation } from '../../src';
 import * as ing from '../../src/brokers/ing';
+import { findImplementation } from '../../src';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -7,7 +8,9 @@ import {
   invalidSamples,
   paybackSamples,
   depotStatement,
+  postboxDepotStatement,
 } from './__mocks__/ing';
+import { ParqetDocumentError } from '../../src/errors';
 
 describe('Broker: ING', () => {
   let consoleErrorSpy;
@@ -19,27 +22,14 @@ describe('Broker: ING', () => {
     depotStatement
   );
 
+  validateAllSamples(ing, allSamples, 'ing');
+
   describe('Check all documents', () => {
-    test('Can the document parsed with ING', () => {
-      allSamples.forEach(pages => {
-        expect(ing.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as ING', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(ing);
-      });
-    });
-
     test('Should not identify ing as broker if ing BIC is not present', () => {
-      invalidSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(0);
+      invalidSamples.forEach((pages, index) => {
+        expect(() =>
+          findImplementation(pages, `ing_invalid_${index}.pdf`, 'pdf')
+        ).toThrowError(ParqetDocumentError);
       });
     });
   });
@@ -196,6 +186,44 @@ describe('Broker: ING', () => {
         tax: 0,
         fxRate: 1.217661,
         foreignCurrency: 'USD',
+      });
+    });
+
+    test('Can parse statement: 2022_DE0007100000', () => {
+      const activities = ing.parsePages(buySamples[8]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'ing',
+        type: 'Buy',
+        date: '2020-03-17',
+        datetime: '2020-03-17T07:33:41.000Z',
+        isin: 'DE0007100000',
+        company: 'Daimler AG Namens-Aktien o.N. Nominale',
+        shares: 100,
+        price: 23.885,
+        amount: 2388.5,
+        fee: 10.87,
+        tax: 0,
+      });
+    });
+
+    test('Can parse statement: 2021_FR0000120578', () => {
+      const activities = ing.parsePages(buySamples[9]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'ing',
+        type: 'Buy',
+        date: '2021-08-18',
+        datetime: '2021-08-18T08:47:49.000Z',
+        isin: 'FR0000120578',
+        company: 'Sanofi S.A. Actions Port. EO 2 Nominale',
+        shares: 155,
+        price: 89.85,
+        amount: 13926.75,
+        fee: 39.72,
+        tax: 41.78,
       });
     });
   });
@@ -478,6 +506,48 @@ describe('Broker: ING', () => {
         foreignCurrency: 'HKD',
       });
     });
+
+    test('Can parse document: 2021_US3682872078', () => {
+      const activities = ing.parsePages(dividendsSamples[9]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'ing',
+        type: 'Dividend',
+        date: '2021-08-18',
+        datetime: '2021-08-18T' + activities[0].datetime.substring(11),
+        isin: 'US3682872078',
+        company: 'Gazprom PJSC Nam.Akt.(Sp.ADRs)/2 RL 5',
+        shares: 1400,
+        price: 0.2891377620538809,
+        amount: 404.78979343034035,
+        fee: 28.43790445683688,
+        tax: 103.42,
+        fxRate: 1.171324,
+        foreignCurrency: 'USD',
+      });
+    });
+
+    test('Can parse document: 2021_IE00BK1PV551', () => {
+      const activities = ing.parsePages(dividendsSamples[10]).activities;
+
+      expect(activities.length).toEqual(1);
+      expect(activities[0]).toEqual({
+        broker: 'ing',
+        type: 'Dividend',
+        date: '2021-09-30',
+        datetime: '2021-09-30T' + activities[0].datetime.substring(11),
+        isin: 'IE00BK1PV551',
+        company: 'Xtr.(IE) - MSCI World Registered Shares 1D o.N.',
+        shares: 490,
+        price: 0.2850017198379645,
+        amount: 139.64739442393187,
+        fee: 0,
+        tax: 25.78,
+        fxRate: 1.159993,
+        foreignCurrency: 'USD',
+      });
+    });
   });
 
   describe('Payback', () => {
@@ -529,6 +599,76 @@ describe('Broker: ING', () => {
         shares: 15,
         price: 42.385333333333335,
         amount: 635.78,
+        fee: 0,
+        tax: 0,
+      });
+    });
+  });
+
+  describe('Postbox Depot Statement', () => {
+    test('Can parse postboxDepotStatement 1', () => {
+      const result = ing.parsePages(postboxDepotStatement[0]);
+      expect(result.status).toEqual(0);
+      expect(result.activities.length).toEqual(17);
+      expect(result.activities[0]).toEqual({
+        broker: 'ing',
+        type: 'TransferIn',
+        date: '2021-03-31',
+        datetime: '2021-03-31T21:59:00.000Z',
+        isin: 'US64110L1061',
+        company: 'Netflix Inc.',
+        shares: 2,
+        price: 443.95,
+        amount: 887.9,
+        fee: 0,
+        tax: 0,
+      });
+
+      expect(result.activities[13]).toEqual({
+        broker: 'ing',
+        type: 'TransferIn',
+        date: '2021-03-31',
+        datetime: '2021-03-31T21:59:00.000Z',
+        isin: 'US74767V1098',
+        company: 'QuantumScape Corp.',
+        shares: 25,
+        price: 38.1664,
+        amount: 954.16,
+        fee: 0,
+        tax: 0,
+      });
+    });
+  });
+
+  describe('Postbox Depot Statement', () => {
+    test('Can parse postboxDepotStatement 2', () => {
+      const result = ing.parsePages(postboxDepotStatement[1]);
+      expect(result.status).toEqual(0);
+      expect(result.activities.length).toEqual(24);
+      expect(result.activities[0]).toEqual({
+        broker: 'ing',
+        type: 'TransferIn',
+        date: '2020-12-31',
+        datetime: '2020-12-31T22:59:00.000Z',
+        isin: 'GB0031215220',
+        company: 'Carnival PLC',
+        shares: 500,
+        price: 15.31,
+        amount: 7655,
+        fee: 0,
+        tax: 0,
+      });
+
+      expect(result.activities[5]).toEqual({
+        broker: 'ing',
+        type: 'TransferIn',
+        date: '2020-12-31',
+        datetime: '2020-12-31T22:59:00.000Z',
+        isin: 'US5949181045',
+        company: 'Microsoft Corp.',
+        shares: 25,
+        price: 182.94,
+        amount: 4573.5,
         fee: 0,
         tax: 0,
       });

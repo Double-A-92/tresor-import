@@ -1,0 +1,3 @@
+datetime;date;time;price;shares;tax;fee;type;broker;holding;isin;wkn;currency
+2021-09-09T00:00:00.000;2021-09-09;;100.0;11;0;7.9;Buy;flatex;apple;US0378331005;865985;EUR
+2021-09-19T16:00:00.000;2021-09-19;16:00:00;121.2;11;10.0;7.9;Sell;flatex;apple;US0378331005;865985;

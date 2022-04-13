@@ -110,7 +110,7 @@ const findDateDividend = textArr => {
 const findShares = textArr => {
   let idx = textArr.findIndex(t => t.toLowerCase() === 'umsatz');
   if (idx >= 0) {
-    return textArr[idx + 1] === 'Fälligkeit'
+    return /F[\W]*?lligkeit/i.test(textArr[idx + 1])
       ? parseGermanNum(textArr[idx + 3])
       : parseGermanNum(textArr[idx + 2]);
   }
@@ -221,10 +221,9 @@ const findAmount = (textArr, type, baseCurrency) => {
   }
 };
 
-const getNumberAfterTermWithOffset = (content, termToLower, offset = 0) => {
-  const lineNumber = content.findIndex(line =>
-    line.toLowerCase().includes(termToLower)
-  );
+const getNumberAfterTermWithOffset = (content, pattern, offset = 0) => {
+  const regex = new RegExp(pattern, 'i');
+  const lineNumber = content.findIndex(line => regex.test(line));
 
   if (lineNumber <= 0) {
     return undefined;
@@ -242,14 +241,19 @@ const findFee = content => {
   const parsedFees = [];
 
   parsedFees.push(getNumberAfterTermWithOffset(content, 'provision'));
-  parsedFees.push(getNumberAfterTermWithOffset(content, 'grundgebühr'));
-  parsedFees.push(getNumberAfterTermWithOffset(content, 'börsenplatzgebühr'));
+  parsedFees.push(getNumberAfterTermWithOffset(content, 'grundgeb[\\W]*?hr'));
+  parsedFees.push(
+    getNumberAfterTermWithOffset(content, 'b[\\W]*?rsenplatzgeb[\\W]*?hr')
+  );
   parsedFees.push(getNumberAfterTermWithOffset(content, 'handelsentgelt'));
   parsedFees.push(getNumberAfterTermWithOffset(content, 'transaktionsentgelt'));
   parsedFees.push(getNumberAfterTermWithOffset(content, 'eig. spesen'));
 
-  if (!content.some(line => line.includes('Ausgabegebühr 0,00%'))) {
-    parsedFees.push(getNumberAfterTermWithOffset(content, 'ausgabegebühr'));
+  const regex = new RegExp('Ausgabegeb[\\W]*?hr 0,00%', 'gi');
+  if (!content.some(line => regex.test(line))) {
+    parsedFees.push(
+      getNumberAfterTermWithOffset(content, 'ausgabegeb[\\W]*?hr')
+    );
   }
 
   const bonificationIdx = content.findIndex(line =>
@@ -276,14 +280,35 @@ const findFee = content => {
 };
 
 const findTax = textArr => {
+  let totalTax = Big(0);
+
   const kapstIdx = textArr.findIndex(t => t.toLowerCase() === 'kapst');
   const solzIdx = textArr.findIndex(t => t.toLowerCase() === 'solz');
 
   const kapst = kapstIdx >= 0 ? textArr[kapstIdx + 3] : null;
   const solz = solzIdx >= 0 ? textArr[solzIdx + 3] : null;
-  const sum = +Big(parseGermanNum(kapst)).plus(Big(parseGermanNum(solz)));
 
-  return Math.abs(sum);
+  totalTax = totalTax.add(parseGermanNum(kapst));
+  totalTax = totalTax.add(parseGermanNum(solz));
+
+  if (totalTax.eq(0)) {
+    // Some documents have an other tax structure...
+    const taxes = [
+      getNumberAfterTermWithOffset(textArr, 'kapitalertragssteuer', 2),
+      getNumberAfterTermWithOffset(textArr, 'solidarit[\\W]*?tszuschlag', 2),
+      getNumberAfterTermWithOffset(textArr, 'kirchensteuer', 2),
+    ];
+
+    taxes.forEach(tax => {
+      if (tax === undefined) {
+        return;
+      }
+
+      totalTax = totalTax.add(tax);
+    });
+  }
+
+  return +totalTax;
 };
 
 const findDividendTax = (textArr, amount) => {
@@ -390,6 +415,7 @@ export const canParseDocument = (pages, extension) => {
 };
 
 const parseData = (textArr, type) => {
+  /** @type {Partial<Importer.Activity>} */
   let activity = {
     broker: 'consorsbank',
     type,
@@ -494,3 +520,5 @@ export const parsePages = contents => {
     status: 0,
   };
 };
+
+export const parsingIsTextBased = () => true;

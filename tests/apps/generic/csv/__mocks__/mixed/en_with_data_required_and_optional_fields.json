@@ -1,0 +1,33 @@
+[
+  {
+    "datetime": "2021-09-09T00:00:00.000",
+    "date": "2021-09-09",
+    "price": 100.0,
+    "shares": 11,
+    "tax": 0,
+    "fee": 7.9,
+    "type": "Buy",
+    "broker": "flatex",
+    "holding": "apple",
+    "isin": "US0378331005",
+    "wkn": "865985",
+    "currency": "EUR",
+    "amount": 1100
+  },
+  {
+    "datetime": "2021-09-19T16:00:00.000",
+    "date": "2021-09-19",
+    "time": "16:00:00",
+    "price": 121.2,
+    "shares": 11,
+    "tax": 10.0,
+    "fee": 7.9,
+    "type": "Sell",
+    "broker": "flatex",
+    "holding": "apple",
+    "isin": "US0378331005",
+    "wkn": "865985",
+    "currency": "EUR",
+    "amount": 1333.2
+  }
+]

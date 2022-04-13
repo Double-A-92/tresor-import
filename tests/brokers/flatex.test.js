@@ -1,5 +1,5 @@
 import * as flatex from '../../src/brokers/flatex';
-import { findImplementation } from '../../src';
+import { validateAllSamples } from '../setup/brokers';
 import {
   buySamples,
   sellSamples,
@@ -13,22 +13,7 @@ import Big from 'big.js';
 describe('Broker: Flatex', () => {
   let consoleErrorSpy;
 
-  describe('Check all documents', () => {
-    test('Can the document parsed with Flatex', () => {
-      allSamples.forEach(pages => {
-        expect(flatex.canParseDocument(pages, 'pdf')).toEqual(true);
-      });
-    });
-
-    test('Can identify a implementation from the document as Flatex', () => {
-      allSamples.forEach(pages => {
-        const implementations = findImplementation(pages, 'pdf');
-
-        expect(implementations.length).toEqual(1);
-        expect(implementations[0]).toEqual(flatex);
-      });
-    });
-  });
+  validateAllSamples(flatex, allSamples, 'flatex');
 
   describe('canParseDocument', () => {
     test('should accept Buy, Sell, Div Flatex PDFs only', () => {
@@ -565,6 +550,27 @@ describe('Broker: Flatex', () => {
 
     test('The statement should be ignored: 2020_saving_plan_confirmation', () => {
       const result = flatex.parsePages(ignoredSamples[1]);
+
+      expect(result.status).toEqual(7);
+      expect(result.activities.length).toEqual(0);
+    });
+
+    test('The statement should be ignored: 2021_at_depot_statement', () => {
+      const result = flatex.parsePages(ignoredSamples[2]);
+
+      expect(result.status).toEqual(7);
+      expect(result.activities.length).toEqual(0);
+    });
+
+    test('The statement should be ignored: 2021_de_depot_statement', () => {
+      const result = flatex.parsePages(ignoredSamples[3]);
+
+      expect(result.status).toEqual(7);
+      expect(result.activities.length).toEqual(0);
+    });
+
+    test('The statement should be ignored: 2021_ishares_core', () => {
+      const result = flatex.parsePages(ignoredSamples[4]);
 
       expect(result.status).toEqual(7);
       expect(result.activities.length).toEqual(0);
